@@ -2,7 +2,7 @@
 """
 Test griddata extractor for CST.
 """
-
+import numpy
 import unittest
 
 class TestGridData(unittest.TestCase):
@@ -15,13 +15,17 @@ class TestGridData(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_unittest_config(self):
+        """Test the setup to ensure unittest asserts behave as expected.
+        """
+        self.assertEqual(1,1)
+
     def tearDown(self):
         pass
 
-    def tearDownClass(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
 
 if __name__ == "__main__":
-    print("Testing...")
     unittest.main()
-    
