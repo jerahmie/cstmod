@@ -3,6 +3,7 @@ Interact with Windows registry to obtain info about local CST Installation
 """
 
 import os.path
+import platform
 import winreg
 
 class CSTRegInfo(object):
@@ -39,7 +40,14 @@ class CSTRegInfo(object):
             print("\n[ERROR] An unanticipated error has occurred.\n")
             raise
 
-        cst_result_reader_path = winreg.QueryValueEx(rkey, "INSTALLPATH")[0]+"CSTResultReader.dll"
+        cst_result_reader_path = winreg.QueryValueEx(rkey, "INSTALLPATH")[0]
+        os_bit, os_name = platform.architecture()
+        if os_bit.startswith('64'):
+            cst_result_reader_path = os.path.join(cst_result_reader_path,
+                                                  "AMD64", "CSTResultReader_AMD64.dll")
+        else:
+            cst_result_reader_path = os.path.join(cst_result_reader_path, 
+                                                  "CSTResultReader.dll")
         if os.path.exists(cst_result_reader_path):
             return cst_result_reader_path
         else:

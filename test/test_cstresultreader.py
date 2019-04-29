@@ -5,7 +5,8 @@ Test CstResultReader adapter class
 import os
 from os.path import normpath, realpath, join
 import unittest
-import winreg
+from cstmod.cstutil import CSTRegInfo
+from cstmod import CSTResultReader
 
 cstmod_test_data_dir = normpath(join(realpath(__file__),
                                      '..', '..',
@@ -18,23 +19,20 @@ class TestCstResultReader(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cst_versions = ['2018']
         print("Executing tests in " + __file__)
 
-
-    
     def setUp(self):
-        pass
+        self.cst_versions = '2018'
+
 
     def testSetup(self):
         """Test the unittest setup.
         """
         self.assertEqual(1,1)
-    
-    def testLocateResultReaderDLL(self):
-        """A simple check to ensure the ResultReaderDLL can be found in the system.
-        """
-        wr_handle = winreg.ConnectRegistry(None, "SOFTWARE\")
+
+    def test_get_dll_version(self):
+        """Returns the CSTResultReader version"""
+        self.assertEqual(0, 1)
 
     def tearDown(self):
         pass
