@@ -9,6 +9,6 @@
 
 # import the required submodules
 from . import cstutil
-
-
-
+from .cstmod_result_reader import CSTResultReader
+from .cstmod_result_reader import CSTMaterialType
+from .cstmod_result_reader import CSTBoundaryType

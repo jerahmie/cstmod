@@ -105,3 +105,7 @@ venv.bak/
 
 # vscode settings
 .vscode/*
+
+# Testing Data
+./Test_Data/*
+!.Test_Data/readme.txt
