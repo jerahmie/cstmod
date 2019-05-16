@@ -58,5 +58,7 @@ y_slice = 0.0
 y_slice_ind = np.argmin(abs(ydim - y_slice))
 plt.pcolormesh(np.transpose(XU), np.transpose(YU), bzr[:,y_slice_ind,:], cmap = mycmap, vmin=-3e-6, vmax=3e-6)
 plt.colorbar()
+
 plt.savefig('bz0_coronal.png')
+
 #plt.show()

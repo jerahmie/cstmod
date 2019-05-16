@@ -8,8 +8,7 @@ import numpy as np
 import scipy.io as spio
 import unittest
 from cstmod.cstutil import CSTRegInfo
-from cstmod import CSTResultReader, CSTMaterialType, CSTBoundaryType
-
+from cstmod import CSTResultReader, CSTMaterialType, CSTBoundaryType, CSTFieldMonitor
 cstmod_test_data_dir = normpath(join(realpath(__file__),
                                               r'..', r'..',
                                               r'Test_Data'))
@@ -128,6 +127,12 @@ class TestCstResultReader(unittest.TestCase):
 
         spio.savemat("test_save.mat", export_dict, oned_as='column')
 
+    def test_get_field_monitor_data(self):
+        """Find field monitor data for given field type.  Verify dimensions of field monitor.
+        """
+        self.assertAlmostEqual(h_field_monitor_min.x, xdim[0])
+
+        
     def test_get_boundaries(self):
         """Extract boundary info from project.
         """

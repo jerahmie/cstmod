@@ -11,35 +11,12 @@ import platform
 import numpy as np
 from enum import Enum
 from cstmod.cstutil import CSTRegInfo
+from cstmod import CSTMaterialType, CSTFieldMonitor
 
 class CSTErrorCodes(Enum):
     """Collection of CST DLL return codes
     """
     ERROR_CODE_MEMORY = 8
-
-class CSTMaterialType(Enum):
-    """Enumeration to encapsulate CST material types.
-    """
-    EPS = 0
-    MUE = 1
-    KAPPA = 2
-    RHO = 3
-
-class CSTBoundaryType(Enum):
-    """Enumeration to encapsulate CST boundary conditions.
-    """
-    Electric = 10
-    Magnetic = 11
-    PML = 12
-    PML_expanded = 13
-    Periodic = 14
-    Tangential = 15
-    Normal = 16
-    No_boundary = 17
-    Impedance = 18
-    Unitcell = 19
-    Open_low_frequency = 21
-
 
 class CSTResultReader(object):
     """Class that wraps the ResultReaderDLL library.
@@ -93,7 +70,6 @@ class CSTResultReader(object):
      
         :return: 
         """
-        
         buf_size = 10000
         discovered_string = ""
         num_items = ctypes.c_int(-1)
