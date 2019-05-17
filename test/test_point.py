@@ -35,6 +35,13 @@ class TestPoint(unittest.TestCase):
         self.assertAlmostEqual(0.0, myPoint.y)
         self.assertAlmostEqual(0.0, myPoint.z)
 
+    def test_equality_operator(self):
+        """Test the __eq__ definition in point.
+        """
+        self.assertNotEqual(CSTPoint(0.0, 1.1, 2.2), CSTPoint(3.3, 4.4, 5.5))
+        self.assertAlmostEqual(CSTPoint(1.1, 2.2, 3.3), CSTPoint(1.1, 2.2, 3.3))
+        self.assertEqual(CSTPoint(9.9, 8.8, 7.7), CSTPoint(9.9, 8.8, 7.7))
+
     def test_bad_types(self):
         """Test that TypeError is thrown if attempt to assign non-number quantity to points.
         """

@@ -8,6 +8,8 @@ import ctypes
 import winreg
 import sys
 import platform
+import re
+import glob
 import numpy as np
 from enum import Enum
 from cstmod.cstutil import CSTRegInfo
@@ -21,6 +23,12 @@ class CSTErrorCodes(Enum):
 class CSTResultReader(object):
     """Class that wraps the ResultReaderDLL library.
     """
+    # class variables
+    _valid_3d_field_types = ['E-Field', 'H-Field', 'Surface Current']
+    _field_meta_regex = {'E-Field': r'(e-field \(f=[0-9.]*\))',
+                        'H-Field': r'(h-field \(f=[0-9.]*\))',
+                        'Surface Current':r'(surface current (\(f=[0-9.]*\)))' }
+    
     def __init__(self, cst_version = '2018'):
         rr_dll_path = CSTRegInfo.find_result_reader_dll(cst_version)
         self._rr_dll = ctypes.WinDLL(rr_dll_path)
@@ -40,6 +48,7 @@ class CSTResultReader(object):
         self._xdim = None
         self._ydim = None
         self._zdim = None
+        self._project_path = None
 
     @property
     def dll_version(self):
@@ -53,8 +62,10 @@ class CSTResultReader(object):
     def open_project(self, project_path):
          """Opens a project
          """
+         self._project_path = project_path
          cst_project_path = ctypes.create_string_buffer(project_path.encode('ascii'))
-         rval = self._rr_dll.CST_OpenProject(ctypes.byref(cst_project_path), ctypes.byref(self._proj_handle))
+         rval = self._rr_dll.CST_OpenProject(ctypes.byref(cst_project_path),
+                                             ctypes.byref(self._proj_handle))
          if 0 != rval:
                 raise Exception("An error occurred.  Error type was: " + str(rval))
 
@@ -68,7 +79,8 @@ class CSTResultReader(object):
     def query_result_names(self, result_string):
         """Returns the number of results available for the selected result tree item.
      
-        :return: 
+        :type: string
+        :return: list of str 
         """
         buf_size = 10000
         discovered_string = ""
@@ -77,7 +89,6 @@ class CSTResultReader(object):
          
         discovered_buf = ctypes.create_string_buffer(buf_size)
         while True:
-            
             rval = self._rr_dll.CST_GetItemNames(ctypes.byref(self._proj_handle),
                                                  search_term,
                                                  discovered_buf,
@@ -92,13 +103,29 @@ class CSTResultReader(object):
                  sys.exit("Error reading items: " + str(rval))
 
         item_list = discovered_buf.value.split(b'\n')
-        # num_results = ctypes.c_int(-1)
-                
-        # tree_path = ctypes.create_string_buffer(b'2D/3D Results\\E-Field\\e-field (f=297) [1]')
-        # rval = self._rr_dll.CST_GetNumberOfResults(ctypes.byref(self._proj_handle),
-        #                                            item_list[0],
-        #                                            ctypes.byref(num_results))
+
         return item_list
+
+    def _query_field_monitors(self, field_type):
+        """Find field monitor metadata files for given result type.
+        
+        Args:
+            field_type (enum): enumeration of possible field types 'E-field', 'H-field', 'Surface current'                      'Surface Current' = 3
+        """
+        if field_type not in self._valid_3d_field_types:
+            raise Exception("Invalid field type.  Valid types are: ", self._valid_3d_field_types)
+        
+        field_results = self.query_result_names(field_type)
+        p = re.compile(self._field_meta_regex[field_type])
+        m = p.findall(field_results[0].decode('ascii'))
+        project_dir, project_ext = os.path.splitext(self._project_path)
+        if 'Surface Current' == field_type:
+            metadata_files = glob.glob(os.path.join(project_dir, r'Result',
+                                       'h-field ' + m[0][1] + '*sct.rex'))
+        else:
+            metadata_files = glob.glob(os.path.join(project_dir, r'Result', m[0] + r'*.rex'))
+        
+        return metadata_files
 
     def get_frequency_scale(self):
         """Returns the frequency scale of the simulation.

@@ -33,6 +33,14 @@ class CSTPoint(object):
         else:
             raise TypeError("z should be of number type, not: " + str(type(z0)))
 
+    def __eq__(self, other):
+        """Determine if two points are equal.
+        """
+        if isinstance(other, CSTPoint):
+            return (self._x == other.x) and (self._y == other.y) and (self._z == other.z)
+
+        return NotImplemented
+
     @property
     def x(self):
         """
@@ -108,14 +116,15 @@ class CSTFieldMonitor(object):
                                                 sim_domain_max[1],
                                                 sim_domain_max[2])
         subvolume = root.find('SubVolume')
-        subvolume_min = [float(i) for i in subvolume.attrib['min_pos'].split()]
-        subvolume_max = [float(i) for i in subvolume.attrib['max_pos'].split()]
-        self._subvolume_min = CSTPoint(subvolume_min[0],
-                                        subvolume_min[1],
-                                        subvolume_min[2])
-        self._subvolume_max = CSTPoint(subvolume_max[0],
-                                        subvolume_max[1],
-                                        subvolume_max[2])
+        if None != subvolume:
+            subvolume_min = [float(i) for i in subvolume.attrib['min_pos'].split()]
+            subvolume_max = [float(i) for i in subvolume.attrib['max_pos'].split()]
+            self._subvolume_min = CSTPoint(subvolume_min[0],
+                                            subvolume_min[1],
+                                            subvolume_min[2])
+            self._subvolume_max = CSTPoint(subvolume_max[0],
+                                            subvolume_max[1],
+                                            subvolume_max[2])
 
     @property
     def simulation_domain_min(self):
