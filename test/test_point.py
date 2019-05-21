@@ -39,6 +39,7 @@ class TestPoint(unittest.TestCase):
         """Test the __eq__ definition in point.
         """
         self.assertNotEqual(CSTPoint(0.0, 1.1, 2.2), CSTPoint(3.3, 4.4, 5.5))
+        self.assertNotEqual(CSTPoint(0.0, 0.0, 0.0), CSTPoint(0.0, 0.0, 0.1))
         self.assertAlmostEqual(CSTPoint(1.1, 2.2, 3.3), CSTPoint(1.1, 2.2, 3.3))
         self.assertEqual(CSTPoint(9.9, 8.8, 7.7), CSTPoint(9.9, 8.8, 7.7))
 

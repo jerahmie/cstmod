@@ -19,6 +19,8 @@ cst_test_data['frequency_scale'] = 1000000
 cst_test_data['nx'] = 450
 cst_test_data['ny'] = 277
 cst_test_data['nz'] = 327
+cst_test_data['simulation_domain_min'] = CSTPoint(-315.8505554199, -315.9505615234,-252.3505554199)
+cst_test_data['simulation_domain_max'] = CSTPoint(315.8505554199, 315.8505554199, 404.7505493164)
 
 class TestCSTMaterialType(unittest.TestCase):
     """Test the unumeration class for CST material matrix types.
@@ -111,6 +113,13 @@ class TestCstResultReader(unittest.TestCase):
         self.assertEqual((cst_test_data["nz"], cst_test_data["ny"], cst_test_data["nx"]), np.shape(rhox))
         self.assertEqual((cst_test_data["nz"], cst_test_data["ny"], cst_test_data["nx"]), np.shape(rhoy))
         self.assertEqual((cst_test_data["nz"], cst_test_data["ny"], cst_test_data["nx"]), np.shape(rhoz))
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_min'].x/xdim[0]), 1000)
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_max'].x/xdim[-1]), 1000)
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_min'].y/ydim[0]), 1000)
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_max'].y/ydim[-1]), 1000)
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_min'].z/zdim[0]), 1000)
+        self.assertAlmostEqual(round(cst_test_data['simulation_domain_max'].z/zdim[-1]), 1000)
+        
         export_dict = {}
         export_dict["xdim"] = xdim
         export_dict["ydim"] = ydim
@@ -140,6 +149,14 @@ class TestCstResultReader(unittest.TestCase):
         fm = CSTFieldMonitor(result_list[0])
         self.assertIsInstance(fm, CSTFieldMonitor)
         self.assertEqual(fm.subvolume_max, CSTPoint(0,0,0))
+        self.assertEqual(fm.subvolume_min, CSTPoint(0.0,0.0,0.0))
+        self.assertEqual(fm.simulation_domain_min.x, cst_test_data['simulation_domain_min'].x)
+        self.assertEqual(fm.simulation_domain_min.y, cst_test_data['simulation_domain_min'].y)
+        self.assertEqual(fm.simulation_domain_min.z, cst_test_data['simulation_domain_min'].z)
+        self.assertEqual(fm.simulation_domain_max.x, cst_test_data['simulation_domain_max'].x)
+        self.assertEqual(fm.simulation_domain_max.y, cst_test_data['simulation_domain_max'].y)
+        self.assertEqual(fm.simulation_domain_max.z, cst_test_data['simulation_domain_max'].z)
+        self.assertEqual(fm.simulation_domain_max, cst_test_data['simulation_domain_max'])
         result_list = self.rr._query_field_monitors('H-Field')
         result_list = self.rr._query_field_monitors('Surface Current')
         

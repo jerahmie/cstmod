@@ -49,6 +49,7 @@ class CSTResultReader(object):
         self._ydim = None
         self._zdim = None
         self._project_path = None
+        self._spatial_units = None
 
     @property
     def dll_version(self):
@@ -272,17 +273,3 @@ class CSTResultReader(object):
             raise Exception("An error occurred. Error type was: " + str(rval))
 
         return d_data
-
-
-if "__main__" == __name__:
-    import os
-    cst_proj_path = os.path.normpath(os.path.join(os.path.realpath(__file__),
-                                        r'..', r'..', r'Test_Data', r'simple_cosim_7T.cst'))
-    print(cst_proj_path)
-    crr = CSTResultReader()
-    crr.open_project(cst_proj_path)
-    results_3d = crr.query_result_names("2D/3D Results")
-    print("before mat_grid")
-    mat_grid = crr.load_grid_mat_data(0)
-    print("mat_grid", mat_grid)
-    crr.close_project()
