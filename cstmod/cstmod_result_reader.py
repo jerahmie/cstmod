@@ -277,10 +277,20 @@ class CSTResultReader(object):
             raise Exception("An error occurred. Error type was: " + str(rval))
 
         n_vals = n_xyz[0] * n_xyz[1] * n_xyz[2]
+        # Extract real, imaginary field components from result array
         field_xr = d_data[0:2*n_vals-1:2]
         field_xi = d_data[1:2*n_vals:2]
         field_yr = d_data[2*n_vals:4*n_vals-1:2]
         field_yi = d_data[2*n_vals+1:4*n_vals:2]
         field_zr = d_data[4*n_vals:6*n_vals-1:2]
         field_zi = d_data[4*n_vals+1:6*n_vals:2]
-        return field_xr+1j*field_xi, field_yr+1j*field_yi, field_zr+1j*field_zi
+        # create complex numpy array from real, imaginary components
+        field_xc = field_xr + 1.0j*field_xi
+        field_yc = field_yr + 1.0j*field_yi
+        field_zc = field_zr + 1.0j*field_zi
+        # reshape array 
+        field_xc = field_xc.reshape((n_xyz[2], n_xyz[1], n_xyz[0]))
+        field_yc = field_yc.reshape((n_xyz[2], n_xyz[1], n_xyz[0]))
+        field_zc = field_zc.reshape((n_xyz[2], n_xyz[1], n_xyz[0]))
+
+        return field_xc, field_yc, field_zc
