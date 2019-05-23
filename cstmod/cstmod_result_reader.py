@@ -104,8 +104,12 @@ class CSTResultReader(object):
                  sys.exit("Error reading items: " + str(rval))
 
         item_list = discovered_buf.value.split(b'\n')
-
-        return item_list
+        # convert from byte string to python string
+        item_list_str = []
+        for i in range(len(item_list)):
+            item_list_str.append("".join(chr(x) for x in item_list[i]))
+            
+        return item_list_str
 
     def _query_field_monitors(self, field_type):
         """Find field monitor metadata files for given result type.
@@ -118,13 +122,13 @@ class CSTResultReader(object):
         
         field_results = self.query_result_names(field_type)
         p = re.compile(self._field_meta_regex[field_type])
-        m = p.findall(field_results[0].decode('ascii'))
+        m = p.findall(field_results[0])
         project_dir, project_ext = os.path.splitext(self._project_path)
         if 'Surface Current' == field_type:
             metadata_files = glob.glob(os.path.join(project_dir, r'Result',
-                                       'h-field ' + m[0][1] + '*sct.rex'))
+                                       'h-field ' + m[0][1] + '*m3d_sct.rex'))
         else:
-            metadata_files = glob.glob(os.path.join(project_dir, r'Result', m[0] + r'*.rex'))
+            metadata_files = glob.glob(os.path.join(project_dir, r'Result', m[0] + r'*m3d.rex'))
         
         return metadata_files
 
@@ -176,9 +180,9 @@ class CSTResultReader(object):
         if 0 != rval:
             raise Exception("An error occurred.  Error type was: " + str(rval))
 
-        self._xdim = [n_xyzlines[i] for i in range(n_xyz[0])]
-        self._ydim = [n_xyzlines[i + n_xyz[0]] for i in range(n_xyz[1])]
-        self._zdim = [n_xyzlines[i + n_xyz[0] + n_xyz[1]] for i in range(n_xyz[2])]
+        self._xdim = np.array([n_xyzlines[i] for i in range(n_xyz[0])])
+        self._ydim = np.array([n_xyzlines[i + n_xyz[0]] for i in range(n_xyz[1])])
+        self._zdim = np.array([n_xyzlines[i + n_xyz[0] + n_xyz[1]] for i in range(n_xyz[2])])
 
         return self._xdim, self._ydim, self._zdim
 
@@ -272,4 +276,11 @@ class CSTResultReader(object):
         if 0 != rval:
             raise Exception("An error occurred. Error type was: " + str(rval))
 
-        return d_data
+        n_vals = n_xyz[0] * n_xyz[1] * n_xyz[2]
+        field_xr = d_data[0:2*n_vals-1:2]
+        field_xi = d_data[1:2*n_vals:2]
+        field_yr = d_data[2*n_vals:4*n_vals-1:2]
+        field_yi = d_data[2*n_vals+1:4*n_vals:2]
+        field_zr = d_data[4*n_vals:6*n_vals-1:2]
+        field_zi = d_data[4*n_vals+1:6*n_vals:2]
+        return field_xr+1j*field_xi, field_yr+1j*field_yi, field_zr+1j*field_zi
