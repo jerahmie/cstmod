@@ -18,7 +18,18 @@ from cstmod import CSTMaterialType, CSTFieldMonitor
 class CSTErrorCodes(Enum):
     """Collection of CST DLL return codes
     """
+    ERROR_UNKNOWN = 1
+    ERROR_FILE_NOT_FOUND = 2
+    ERROR_PROJECT_FILE_NOT_VALID = 3
+    ERROR_RESULT_TREE_ITEM_NOT_FOUND = 4
+    ERROR_REQUESTED_RESULT_DOES_NOT_CORRESPOND = 5
+    ERROR_BAD_FUNCTION_ARGUMENT = 6
+    ERROR_INCOMPATIBLE_RESULT_TYPE = 7
     ERROR_CODE_MEMORY = 8
+    ERROR_UNSUPPORTED_MESH_TYPE = 9
+    ERROR_VERSION_CONFLICT = 10
+    ERROR_CST_PROJECT_IN_USE = 11
+    ERROR_UNPACKED_PROJECT_FOLDER = 12
 
 class CSTResultReader(object):
     """Class that wraps the ResultReaderDLL library.
@@ -68,7 +79,7 @@ class CSTResultReader(object):
          rval = self._rr_dll.CST_OpenProject(ctypes.byref(cst_project_path),
                                              ctypes.byref(self._proj_handle))
          if 0 != rval:
-                raise Exception("An error occurred.  Error type was: " + str(rval))
+                raise Exception("An error occurred.  Error type was: " + str(CSTErrorCodes(rval)))
 
     def close_project(self):
         """Closes project
@@ -84,7 +95,6 @@ class CSTResultReader(object):
         :return: list of str 
         """
         buf_size = 10000
-        discovered_string = ""
         num_items = ctypes.c_int(-1)
         search_term = ctypes.create_string_buffer(result_string.encode('ascii'))
          
@@ -97,7 +107,7 @@ class CSTResultReader(object):
                                                  ctypes.pointer(num_items))
             if 0 == rval:
                  break
-            elif CSTErrorCodes.ERROR_CODE_MEMORY.val == rval:
+            elif CSTErrorCodes.ERROR_CODE_MEMORY.value == rval:
                  buf_size *= 2
                  discovered_buf = ctypes.create_string_buffer(buf_size)
             else:
@@ -167,13 +177,11 @@ class CSTResultReader(object):
         rval = self._rr_dll.CST_GetHexMeshInfo(ctypes.byref(self._proj_handle),
                                                 ctypes.byref(n_xyz))
         if 0 != rval:
-            raise Exception("An error occurred.  Error type was: " + str(rval))
+            raise Exception("An error occurred.  Error type was: " + str(rval) + " (" + str(CSTErrorCodes(rval)) + ")")
 
         self._nx = n_xyz[0]
         self._ny = n_xyz[1]
         self._nz = n_xyz[2]
-
-        n_xyzlines_size = n_xyz[0] + n_xyz[1] + n_xyz[2]
         n_xyzlines = (ctypes.c_double * (n_xyz[0] + n_xyz[1] + n_xyz[2]))()
         rval = self._rr_dll.CST_GetHexMesh(ctypes.byref(self._proj_handle),
                                             ctypes.byref(n_xyzlines))
@@ -218,6 +226,8 @@ class CSTResultReader(object):
         :return: returns numpy array with appropriate dimensions
         """
         cst_tree_path_name = ctypes.create_string_buffer(tree_path_name.encode('ascii'))
+        #cst_tree_path_name = ctypes.create_string_buffer(tree_path_name)
+        print("cst_tree_path_name: ", cst_tree_path_name)
         rval = ctypes.c_int(0)
         n_result_number = ctypes.c_int(0)
         rval = self._rr_dll.CST_GetNumberOfResults(ctypes.byref(self._proj_handle),
@@ -264,17 +274,24 @@ class CSTResultReader(object):
         print("iinfo: ", iinfo.value)
         if 1 == iinfo.value: 
             # complex 3d vector field
-            d_data = np.empty((n_data_size.value,), dtype=ctypes.c_float)
-            p_data = d_data.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            #d_data = np.empty((n_data_size.value,), dtype=ctypes.c_float)
+            #p_data = d_data.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            d_data = (ctypes.c_float*(n_data_size.value))()
+
         else:
             raise Exception("Monitor type (" + str(iinfo) + ") not implemented.")
-
+        
+        #rval = self._rr_dll.CST_Get3DHexResult(ctypes.byref(self._proj_handle),
+        #                                        ctypes.byref(cst_tree_path_name),
+        #                                        ctypes.byref(iinfo),
+        #                                        p_data)
         rval = self._rr_dll.CST_Get3DHexResult(ctypes.byref(self._proj_handle),
                                                 ctypes.byref(cst_tree_path_name),
-                                                ctypes.byref(iinfo),
-                                                p_data)
+                                                n_result_number,
+                                                ctypes.byref(d_data))
+        print("d_data: ", np.shape(d_data))
         if 0 != rval:
-            raise Exception("An error occurred. Error type was: " + str(rval))
+            raise Exception("An error occurred. Error type was: " + str(CSTErrorCodes(rval)) +  str(rval))
 
         n_vals = n_xyz[0] * n_xyz[1] * n_xyz[2]
         # Extract real, imaginary field components from result array

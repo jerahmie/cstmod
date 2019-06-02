@@ -1,6 +1,7 @@
 """CSTFieldWriter class provides methods to export CST field data in various formats on non-uniform
  and uniform grids.
 """
+import abc
 import re
 import numpy as np
 import scipy.io as spio
@@ -13,9 +14,39 @@ except ImportError:
         return abs(a-b) <= max(rel_tol*max(abs(a), abs(b)), abs_tol)
 
 class CSTFieldWriter(object):
+    """Base clas for writing cst field data to file.
+    """
+    __metaclass__ = abc.ABCMeta
+    def __init__(self, result_reader):
+        self._xdim = None
+        self._ydim = None
+        self._zdim = None
+        self._fx = None
+        self._fx_original = None
+        self._fy_original = None
+        self._fz_original = None
+        self._result_reader = result_reader
+    
+    @property
+    def xdim(self):
+        """Return x grid values"""
+        return self._xdim
+
+    @property
+    def ydim(self):
+        """Return y grid values"""
+        return self._ydim
+
+    @property
+    def zdim(self):
+        """Return z grid values"""
+        return self._zdim
+
+
+class CSTFieldWriterNonUniform(CSTFieldWriter):
     """CSTFieldWriter exports complex electromagnetic field values 
     Args:
-
+        :result_reader:  a result reader object to read cst field data
     """
     def __init__(self, result_reader):
         self.rr = result_reader
@@ -50,8 +81,10 @@ class CSTFieldWriter(object):
             self._units = 'mm'
         else:
             raise Exception("Unable to determine units.")
+        
+        return self._units
 
-    def _matwriter(self, field_type, match_regex='\[[0-9]*\]'):
+    def _matwriter(self, field_type, match_regex=r'\[Tran[0-9]*\]'):
         """Write field data to Matlab v5 mat file.
         """
         match_regex = '2D/3D Results' + '.*' + field_type + '.*' + match_regex
@@ -66,7 +99,9 @@ class CSTFieldWriter(object):
             raise Exception("Field type not recognized.")
         field_results = [result for result in field_results]
         field_datax, field_datay, field_dataz = self.rr.load_data_3d(field_results[0])
-
+        print("field_datax shape: ", np.shape(field_datax))
+        print("field_datay shape: ", np.shape(field_datay))
+        print("field_dataz shape: ", np.shape(field_dataz))
         save_dict = dict()
         save_dict['XDim'] = self._xdim
         save_dict['YDim'] = self._ydim

@@ -3,7 +3,7 @@ Unit tests for CSTFieldWriter
 """
 import os
 import unittest
-from cstmod import CSTFieldWriter, CSTResultReader
+from cstmod import CSTFieldWriter, CSTResultReader, CSTFieldWriterNonUniform
 
 class TestCSTFieldWriter(unittest.TestCase):
     """TestCase implementation for TestCSTFieldWriter class.
@@ -23,7 +23,7 @@ class TestCSTFieldWriter(unittest.TestCase):
                                              r'simple_cosim_7T.cst')
         self.rr = CSTResultReader('2018')
         self.rr.open_project(self.cst_project_path)
-        self.fw = CSTFieldWriter(self.rr)
+        self.fw = CSTFieldWriterNonUniform(self.rr)
         self.outputfile = 'test.mat'
         if os.path.exists('test.mat'):
             os.remove(self.outputfile)
@@ -36,6 +36,7 @@ class TestCSTFieldWriter(unittest.TestCase):
     def test_cstfieldwriter_hierarchy(self):
         """Verify CSTFieldWriter is an object.
         """
+        self.assertIsInstance(self.fw, CSTFieldWriterNonUniform)
         self.assertIsInstance(self.fw, CSTFieldWriter)
         self.assertIsInstance(self.fw.rr, CSTResultReader)
 

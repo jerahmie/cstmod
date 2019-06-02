@@ -8,19 +8,21 @@ import numpy as np
 import scipy.io as spio
 import unittest
 from cstmod.cstutil import CSTRegInfo
-from cstmod import CSTResultReader, CSTMaterialType, CSTBoundaryType, CSTFieldMonitor, CSTPoint
+from cstmod import CSTResultReader, CSTMaterialType, CSTBoundaryType, CSTFieldMonitor, CSTPoint, CSTErrorCodes
 cstmod_test_data_dir = normpath(join(realpath(__file__),
                                               r'..', r'..',
                                               r'Test_Data'))
 
 cst_test_data = {}
-cst_test_data['nchannels'] = 7
+cst_test_data['nchannels'] = 21
 cst_test_data['frequency_scale'] = 1000000
-cst_test_data['nx'] = 450
-cst_test_data['ny'] = 277
-cst_test_data['nz'] = 327
+cst_test_data['nx'] = 507
+cst_test_data['ny'] = 313
+cst_test_data['nz'] = 388
 cst_test_data['simulation_domain_min'] = CSTPoint(-315.8505554199, -315.9505615234,-252.3505554199)
 cst_test_data['simulation_domain_max'] = CSTPoint(315.8505554199, 315.8505554199, 404.7505493164)
+cst_test_data['subvolume_min'] = CSTPoint(-63.5, -63.59999847412, 0.0)
+cst_test_data['subvolume_max'] = CSTPoint(63.5, 63.5, 152.3999938965)
 
 class TestCSTMaterialType(unittest.TestCase):
     """Test the unumeration class for CST material matrix types.
@@ -48,7 +50,7 @@ class TestResultReaderSetup(unittest.TestCase):
         """Ensure an exception is raised if the project does not exist.
         """
         with self.assertRaises(Exception):
-            self.rr.open_project("D:\workspace\cstmod\Test_Data\fake_proj.cst")
+            self.rr.open_project("D:\\workspace\\cstmod\\Test_Data\\fake_proj.cst")
         self.rr.close_project()
 
     def test_open_project(self):
@@ -148,8 +150,10 @@ class TestCstResultReader(unittest.TestCase):
         result_list = self.rr._query_field_monitors('E-Field')
         fm = CSTFieldMonitor(result_list[0])
         self.assertIsInstance(fm, CSTFieldMonitor)
-        self.assertEqual(fm.subvolume_max, CSTPoint(0,0,0))
-        self.assertEqual(fm.subvolume_min, CSTPoint(0.0,0.0,0.0))
+        print('subvolume_max: ', fm.subvolume_max)
+        print('subvolume_min: ', fm.subvolume_min)
+        self.assertEqual(fm.subvolume_max, cst_test_data['subvolume_max'])
+        self.assertEqual(fm.subvolume_min, cst_test_data['subvolume_min'])
         self.assertEqual(fm.simulation_domain_min.x, cst_test_data['simulation_domain_min'].x)
         self.assertEqual(fm.simulation_domain_min.y, cst_test_data['simulation_domain_min'].y)
         self.assertEqual(fm.simulation_domain_min.z, cst_test_data['simulation_domain_min'].z)
@@ -187,9 +191,14 @@ class TestCstResultReader(unittest.TestCase):
     def test_get_3d_hex_result_info(self):
         """Queries info about 3-D field monitor.
         """
-        e_field = self.rr.load_data_3d('2D/3D Results\\E-Field\\e-field (f=297) [1]')
-        expected_data_size = cst_test_data["nx"]  * cst_test_data["ny"] * cst_test_data["nz"] * 6
-        self.assertEqual((expected_data_size,), np.shape(e_field))
+        available_results = self.rr.query_result_names('e-field')
+        print(CSTErrorCodes(2))
+        e_fieldx, e_fieldy, e_fieldz  = self.rr.load_data_3d(available_results[0])
+        print("e_field_shape: ", np.shape(e_fieldx))
+        expected_data_size = (cst_test_data["nx"], cst_test_data["ny"], cst_test_data["nz"])
+        self.assertEqual(expected_data_size, np.shape(e_fieldx))
+        self.assertEqual(expected_data_size, np.shape(e_fieldy))
+        self.assertEqual(expected_data_size, np.shape(e_fieldz))
 
     def tearDown(self):
         self.rr.close_project()

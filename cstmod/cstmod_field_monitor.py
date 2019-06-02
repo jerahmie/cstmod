@@ -41,6 +41,12 @@ class CSTPoint(object):
 
         return NotImplemented
 
+    def __str__(self):
+        """Print CSTPoint data. 
+        """
+        return "(" + str(self._x) + ", " + str(self._y) + ", " + str(self._z) + ")"
+
+
     @property
     def x(self):
         """

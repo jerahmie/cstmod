@@ -12,5 +12,5 @@ from . import cstutil
 from .cstmod_material_type import CSTMaterialType
 from .cstmod_boundary_type import CSTBoundaryType
 from .cstmod_field_monitor import CSTFieldMonitor, CSTPoint
-from .cstmod_result_reader import CSTResultReader
-from .cstmod_field_writer import CSTFieldWriter
+from .cstmod_result_reader import CSTResultReader, CSTErrorCodes
+from .cstmod_field_writer import CSTFieldWriter, CSTFieldWriterNonUniform
