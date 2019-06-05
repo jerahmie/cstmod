@@ -24,8 +24,8 @@ def main(cst_project, field_monitor_regex, output_file):
     print("Saving field results to file: ", output_file)
 
 if "__main__" == __name__:
-    #cst_project = os.path.join("F:\\", "KU_ten_32_Tx_MRT.cst")
-    cst_project = os.path.join("..","Test_Data","simple_cosim_7T.cst")
-    #main(cst_project, 'E-field\e-field*[Tran*]', 'e-field.mat')
-    main(cst_project, 'E-field\e-field*[0-9*]', 'e-field.mat')
+    cst_project = os.path.join("E:\\", "CST_Results", "KU_ten_32_Tx_MRT.cst")
+    #cst_project = os.path.join("..","Test_Data","simple_cosim_7T.cst")
+    main(cst_project, 'E-field\e-field*[Tran*]', 'e-field.mat')
+    #main(cst_project, 'E-field\e-field*[0-9*]', 'e-field.mat')
     

@@ -98,6 +98,7 @@ class CSTFieldWriterNonUniform(CSTFieldWriter):
         else:
             raise Exception("Field type not recognized.")
         field_results = [result for result in field_results]
+        print('field_results: ', field_results) 
         field_datax, field_datay, field_dataz = self.rr.load_data_3d(field_results[0])
         print("field_datax shape: ", np.shape(field_datax))
         print("field_datay shape: ", np.shape(field_datay))

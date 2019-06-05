@@ -274,20 +274,15 @@ class CSTResultReader(object):
         print("iinfo: ", iinfo.value)
         if 1 == iinfo.value: 
             # complex 3d vector field
-            #d_data = np.empty((n_data_size.value,), dtype=ctypes.c_float)
-            #p_data = d_data.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-            d_data = (ctypes.c_float*(n_data_size.value))()
+            d_data = np.empty((n_data_size.value,), dtype=ctypes.c_float)
+            p_data = d_data.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
         else:
             raise Exception("Monitor type (" + str(iinfo) + ") not implemented.")
         
-        #rval = self._rr_dll.CST_Get3DHexResult(ctypes.byref(self._proj_handle),
-        #                                        ctypes.byref(cst_tree_path_name),
-        #                                        ctypes.byref(iinfo),
-        #                                        p_data)
         rval = self._rr_dll.CST_Get3DHexResult(ctypes.byref(self._proj_handle),
                                                 ctypes.byref(cst_tree_path_name),
-                                                n_result_number,
+                                                ctypes.byref(iinfo),
                                                 ctypes.byref(d_data))
         print("d_data: ", np.shape(d_data))
         if 0 != rval:
