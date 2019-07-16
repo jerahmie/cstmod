@@ -19,7 +19,7 @@ class TestCstRegInfo(unittest.TestCase):
         """
         possible_cst_versions -- list of CST versions supported in this test class.
         """
-        self.supported_cst_versions = ['2018']
+        self.supported_cst_versions = ['2018', '2019']
     
     def test_framework_setup(self):
         """Ensure unittests are set up properly.
