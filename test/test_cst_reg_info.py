@@ -5,8 +5,12 @@ Unit tests for interaction with Windows Registry to obtain information about CST
 import os
 import sys
 import unittest
-from cstmod.cstutil import CSTRegInfo
-
+if sys.platform.startswith("win"):
+    from cstmod.cstutil import CSTRegInfo
+else:
+    print("Testing CSTRegInfo assumes this is a windows platform. Exiting.")
+    sys.exit()
+    
 class TestCstRegInfo(unittest.TestCase):
     """
     TestCase class for extracting CSTResultReader.dll version and location.
@@ -19,7 +23,7 @@ class TestCstRegInfo(unittest.TestCase):
         """
         possible_cst_versions -- list of CST versions supported in this test class.
         """
-        self.supported_cst_versions = ['2018']
+        self.supported_cst_versions = ['2018','2019']
     
     def test_framework_setup(self):
         """Ensure unittests are set up properly.
@@ -34,8 +38,9 @@ class TestCstRegInfo(unittest.TestCase):
         if 0 == len(installed_cst_versions):
             Warning("No versions of CST have been found.")
             sys.exit()
-
-        self.assertTrue(set(self.supported_cst_versions).issubset(set(installed_cst_versions)))
+        print(installed_cst_versions)
+        #self.assertTrue(set(self.supported_cst_versions).issubset(set(installed_cst_versions)))
+        self.assertTrue(set(installed_cst_versions).issubset(set(self.supported_cst_versions)))
         
     def test_result_reader_location(self):
         """
