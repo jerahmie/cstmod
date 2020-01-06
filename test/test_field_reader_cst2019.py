@@ -74,7 +74,8 @@ class TestFieldReaderCST2019(unittest.TestCase):
     def test_vopgen_bfield_writer(self):
         """Test the vopgen field writer for magnetic fields.
         """
-        self.fr.write_vopgen('447',self.test_data_dir, self.vopgen_export_dir,
+        self.fr.write_vopgen('447',self.test_data_dir, 
+                              os.path.join(self.vopgen_export_dir, 'bfMapArrayN.mat'),
                               export_type='h-field', merge_type='AC',
                               rotating_frame = True)
         #ensure output directory has been created
@@ -136,7 +137,8 @@ class TestFieldReaderCST2019(unittest.TestCase):
     def test_vopgen_efield_writer(self):
         """Test the vopgen field writer method.
         """
-        self.fr.write_vopgen('447', self.test_data_dir, self.vopgen_export_dir,
+        self.fr.write_vopgen('447', self.test_data_dir, 
+                             os.path.join(self.vopgen_export_dir, 'efMapArrayN.mat'),
                              export_type='e-field', merge_type = 'AC',
                              rotating_frame = False)
         # ensure ouput directory is created.

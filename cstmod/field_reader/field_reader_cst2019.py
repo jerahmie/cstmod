@@ -67,7 +67,7 @@ class FieldReaderCST2019(FieldReaderABC):
         self._process_file_list(file_name_pattern)
         self._nchannels = len(self._field_file_list)
         if len(self._normalization) != self._nchannels:
-            self._normalization = np.ones((1,self._nchannels), dtype = np.float)
+            self._normalization = np.ones((self._nchannels), dtype = np.float)
         for channel, file_name in enumerate(self._field_file_list):
             if not os.path.exists(file_name):
                 print("Could not find file: ", file_name)
@@ -98,6 +98,7 @@ class FieldReaderCST2019(FieldReaderABC):
                     self._complex_fields = np.empty(field_dim, dtype=np.complex)
 
                 # construct field array
+                print("Normalization: ", self._normalization)
                 if rotating_frame:
                     # positive rotating frame (e.g. B1+)
                     fx = fxre + 1.0j*fxim
@@ -158,8 +159,8 @@ class FieldReaderCST2019(FieldReaderABC):
             f_padded_right_bracket.append("[]]".join(temp))
 
         return "[[]".join(f_padded_right_bracket)
-
-    def write_vopgen(self, frequency, source_dir, output_dir = None, export_type='e-field', 
+    
+    def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
                      merge_type = 'AC', rotating_frame = False):
         """Create vopgen output files for e-field and b-field, masks, etc.
         Args:
@@ -167,17 +168,12 @@ class FieldReaderCST2019(FieldReaderABC):
                         the source directory.
             export_type: Data to export.  valid options are 'h-field', 'e-field'
         """
+        output_dir = os.path.dirname(output_file)
         if not output_dir:
             output_dir = os.path.join(self._source_dir, 'Export', 'Vopgen')
         if not os.path.exists(output_dir):
             print("trying to create vopgen directory")
             os.makedirs(output_dir)
-
-        #if len(new_normalization) != self._nchannels:
-        #    print("[ERROR] normalization length (",
-        #          len(new_normalization),
-        #          ") must equal number of channels (",
-        #          self._nchannels, ")")
 
         export_type = self.cst_3d_field_types[export_type]
         self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
@@ -187,12 +183,10 @@ class FieldReaderCST2019(FieldReaderABC):
         export_dict[u'ZDim'] = self._zdim
         if 'E-Field' == export_type:
             export_dict[u'efMapArrayN'] = self._complex_fields
-            hdf5storage.savemat(os.path.join(output_dir, 'efMapArrayN.mat'),
-                                export_dict, oned_as='column')
+            hdf5storage.savemat(output_file, export_dict, oned_as='column')
         elif 'H-Field' == export_type:
             export_dict[u'bfMapArrayN'] = mu_0 * self._complex_fields
-            hdf5storage.savemat(os.path.join(output_dir, 'bfMapArrayN.mat'),
-                                export_dict, oned_as='column')
+            hdf5storage.savemat(output_file, export_dict, oned_as='column')
 
     @property
     def normalization(self):
