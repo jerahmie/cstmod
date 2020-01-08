@@ -47,8 +47,7 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
     sarmask.epsr_max = 100
     sarmask.sigma_min = 0.2 # (S/m)
     sarmask.sigma_max = 1.0 # (S/m)  Exclude conductors
-    sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned.mat'))
-    
+    sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned_raw.mat'))
 
 if "__main__" == __name__:
     print("vopgen cst2019 tests...")
@@ -66,22 +65,27 @@ if "__main__" == __name__:
     
     vopgen_dir = os.path.join(project_path, '..', 'Vopgen')
     #export_vopgen_fields(project_path, vopgen_dir, normalization)
-    efMapArrayN = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
-    bfMapArrayN_rect = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
-    
-    ef_cp = np.zeros((efMapArrayN['XDim'], 
-                      efMapArrayN['YDim'],
-                      efMapArrayN['ZDim']),
-                     dtype=np.complex)
-    bf_cp = np.zeros((bfMapArrayN_rect['XDim'],
-                      bfMapArrayN_rect['YDim'],
-                      bfMapArrayN_rect['ZDim']),
-                     dtype=np.complex)
+    efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
+    bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
+    efMapArrayN = efMapArrayN_dict['efMapArrayN']
+    bfMapArrayN_rect = bfMapArrayN_rect_dict['bfMapArrayN']
 
-    # shim fields.
+    # Choose a shim solution for extracting mask and material properties
+    # (initially cp-like mode)
+    (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
+    ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+    hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+
+    phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
+    for channel in range(nchannels):
+        ef_mask_shim += efMapArrayN[:,:,:,:,channel] * \
+                        np.exp(-1.0j*phases[channel])
+        hf_mask_shim += (1.0/sp.constants.mu_0)*bfMapArrayN_rect[:,:,:,:,channel] * \
+                        np.exp(-1.0j*phases[channel])
     
-    #export_vopgen_mask(vopgen_dir, 447.0e6,
-    #                   efMapArrayN['XDim'],
-    #                   efMapArrayN['YDim'],
-    #                   efMapArrayN['ZDim'],
-    #                   ef_cp, bf_cp)
+    export_vopgen_mask(vopgen_dir, 447.0e6,
+                       efMapArrayN_dict['XDim'],
+                       efMapArrayN_dict['YDim'],
+                       efMapArrayN_dict['ZDim'],
+                       ef_mask_shim,
+                       hf_mask_shim)
