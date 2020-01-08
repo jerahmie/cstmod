@@ -132,9 +132,11 @@ class FieldReaderCST2019(FieldReaderABC):
             print(fnmatch.filter(os.listdir(os.path.dirname(file_name_pattern)),self._pad_bracket_string(file_base_pattern)))
             file_list = [os.path.join(self._source_dir, file) for file in fnmatch.filter(os.listdir(os.path.dirname(file_name_pattern)),file_base_pattern)]
             print("file_list: ", file_list)
-        else:    
-            file_list = glob.glob(file_name_pattern)
-        
+        else:
+            file_list = glob.glob(self._pad_bracket_string(file_name_pattern))
+            if 0 == len(file_list):
+                raise KeyError("File pattern not found: " + file_name_pattern )
+
         #  One-liner to generate a list of filenames sorted by the channel number.
         if 1 == len(file_list):
             self._field_file_list = file_list
