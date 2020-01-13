@@ -45,10 +45,18 @@ def sarmask_cleanup(input_filename, output_filename):
     print('ymin_ind', ymin_ind)
     print('ymax_ind', ymax_ind)
 
+    # zero-out x- and y- regions
     sarmask[0:xmin_ind,:,:] = 0
     sarmask[xmax_ind:-1,:,:] = 0
-    sarmask[:,0:ymin_ind,:] = 0
-    sarmask[:,ymax_ind:-1,:] = 0
+    for x_ind in range(xmin_ind, xmax_ind):
+        y_top = y0 + np.sqrt(mask_radius**2 - (xdim[x_ind]-x0)**2)
+        y_top_ind = np.argmin(abs(ydim - y_top))
+        y_bottom = y0 - np.sqrt(mask_radius**2 - (xdim[x_ind]-x0)**2)
+        y_bottom_ind = np.argmin(abs(ydim - y_bottom))
+        sarmask[x_ind,0:y_bottom_ind,:] = 0
+        sarmask[x_ind,y_top_ind:-1,:] = 0
+
+    # save cleaned sarmask
     sarmask_dict_clean = dict()
     sarmask_dict_clean[u'sarmask_new'] = sarmask
     sarmask_dict_clean[u'XDim'] = xdim
@@ -59,10 +67,17 @@ def sarmask_cleanup(input_filename, output_filename):
 
 if "__main__" == __name__:
     print("Post-processing SAR mask.")
-    sarmask_filename = os.path.join(r'D:', os.sep,
-                                    r'CST_Projects', 
-                                    r'Vopgen',
-                                    r'sarmask_aligned_raw.mat')
+    if 'win32' == sys.platform:
+        sarmask_filename = os.path.join(r'D:', os.sep,
+                                        r'CST_Projects', 
+                                        r'Vopgen',
+                                        r'sarmask_aligned_raw.mat')
+    elif 'linux' == sys.platform:
+        sarmask_filename = os.path.join(r'/mnt',
+                                        r'Data',
+                                        r'CST_Projects',
+                                        r'Vopgen',
+                                        r'sarmask_aligned_raw.mat')
 
     if not os.path.exists(sarmask_filename):
         print("Could not find filename: ", sarmask_filename)
