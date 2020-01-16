@@ -97,7 +97,7 @@ class GenericDataNArray(DataNArrayABC):
                         irow += 1
 
 
-    def nchannel_data_at_val(self, val0):
+    def nchannel_data_at_value(self, val0):
         """Returns the n-channel data at given value.
         """
         # find index of element nearest to 

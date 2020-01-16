@@ -14,7 +14,7 @@ class DataNArrayABC(ABC):
         pass
 
     @abstractmethod
-    def nchannel_data_at_val(self, val0, eval_type):
+    def nchannel_data_at_value(self, val0, eval_type):
         """Returns the nchannels of data at the value of interest.
         Args:
             val0      (float): value of interest that is exported.

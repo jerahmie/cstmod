@@ -7,7 +7,8 @@ import hdf5storage
 import numpy as np
 import scipy as sp
 from rfutils import xmat
-import cstmod.field_reader as field_reader
+from cstmod.field_reader import FieldReaderCST2019, GenericDataNArray
+
 from cstmod.vopgen import SARMaskCST2019
 
 def export_vopgen_fields(project_dir, export_dir, normalization):
@@ -17,14 +18,14 @@ def export_vopgen_fields(project_dir, export_dir, normalization):
     
     if not os.path.exists(vopgen_dir):
         os.mkdir(vopgen_dir)
-    efields_fr = field_reader.FieldReaderCST2019()
+    efields_fr = FieldReaderCST2019()
     efields_fr.normalization = normalization
     print('e-field normalization: ', efields_fr.normalization)
     efields_fr.write_vopgen('447', export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
                             export_type='e-field', merge_type='AC',
                             rotating_frame=False)
-    hfields_fr = field_reader.FieldReaderCST2019()
+    hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
     hfields_fr.write_vopgen('447', export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
@@ -53,14 +54,18 @@ if "__main__" == __name__:
     print("vopgen cst2019 tests...")
     project_path = os.path.join('D:', os.sep, 'CST_Projects', \
         'KU_ten_32_Tx_MRT_23Jul2019')
-    accepted_power_file = os.path.join('D:', os.sep, 'workspace', 'cstmod', 
-                                        'accepted_powers.csv')
-    with open(accepted_power_file, 'r', newline='') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        for row in spamreader:
-            accepted_power = [float(powerval) for powerval in row]
-    print("accepted power: ", accepted_power)
-    normalization = [1.0/np.sqrt(power) for power in accepted_power]
+    #accepted_power_file = os.path.join('D:', os.sep, 'workspace', 'cstmod', 
+    #                                    'accepted_powers.csv')
+    #with open(accepted_power_file, 'r', newline='') as csvfile:
+    #    spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+    accepted_power_file_pattern = os.path.join(project_path, 'Export',
+                                               'Power_Excitation*_Power Accepted (DS).txt')
+
+    accepted_power_narray = GenericDataNArray()
+    accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+    f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(447.0)
+    print("accepted power: ", accepted_power_at_freq)
+    normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
     print(normalization)
     
     vopgen_dir = os.path.join(project_path, '..', 'Vopgen')

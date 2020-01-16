@@ -35,7 +35,7 @@ class TestOneDimemensionalCSTData(unittest.TestCase):
         """
         #file_name_pattern = "Power_Excitation (AC*)_Power Accepted (DS).txt"
         file_name_pattern = os.path.join(self.test_data_dir,
-                                         "Power_Excitation*(DS).txt")
+                                         "Power_Excitation*_Power Accepted (DS).txt")
 
         print(file_name_pattern)
         file_list = self.gdr._process_file_list(file_name_pattern)
@@ -45,7 +45,7 @@ class TestOneDimemensionalCSTData(unittest.TestCase):
         self.assertEqual(self.gdr.data_shape, (1001,16))
         self.assertEqual(self.gdr.data_length, 1001)
         
-        f0, power_admitted = self.gdr.nchannel_data_at_val(447.0)
+        f0, power_admitted = self.gdr.nchannel_data_at_value(447.0)
         self.assertEqual(len(power_admitted), 16)
         print("f0: ", f0, ", power_admitted: ", power_admitted)
 
