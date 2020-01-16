@@ -18,9 +18,7 @@ def sarmask_cleanup(input_filename, output_filename):
     x0 = 0.0
     y0 = 0.0
     z0 = 0.0
-    #x0_ind = np.argmin(abs(xdim - x0))
-    #y0_ind = np.argmin(abs(ydim - y0))
-    #z0_ind = np.argmin(abs(zdim - z0))
+
     mask_radius = 100 # mm
 
     zmax = 390 # mm

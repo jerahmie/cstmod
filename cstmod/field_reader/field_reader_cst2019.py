@@ -40,6 +40,7 @@ class FieldReaderCST2019(FieldReaderABC):
         self._ydim = None
         self._zdim = None
         self._normalization = [1.0]
+        self._source_dir = ""
 
     def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False):
         """Read fields from multiple files.  A field patter will be constructed
@@ -134,8 +135,9 @@ class FieldReaderCST2019(FieldReaderABC):
             print("file_list: ", file_list)
         else:
             file_list = glob.glob(self._pad_bracket_string(file_name_pattern))
-            if 0 == len(file_list):
-                raise KeyError("File pattern not found: " + file_name_pattern )
+
+        if 0 == len(file_list):
+            raise KeyError("File pattern not found: " + file_name_pattern )
 
         #  One-liner to generate a list of filenames sorted by the channel number.
         if 1 == len(file_list):
