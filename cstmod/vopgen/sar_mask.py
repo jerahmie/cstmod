@@ -100,6 +100,7 @@ class SARMaskCST2019(object):
                                len(self._ydim),
                                len(self._zdim)),
                               dtype = np.int)
+        print("sar_mask_ind: ", sigma_mask_ind)
         sigma_mask[sigma_mask_ind] = 1
         epsr_mask_ind = np.where((self._epsr_min < self._epsr) &
                                  (self._epsr_max > self._epsr))
@@ -107,8 +108,10 @@ class SARMaskCST2019(object):
                               len(self._ydim),
                               len(self._zdim)),
                                  dtype = np.int)
+        print("epsr_mask_ind: ", epsr_mask_ind)
         epsr_mask[epsr_mask_ind] = 1
         self._sarmask = np.multiply(epsr_mask, sigma_mask)
+
         
     @property
     def sarmask(self):

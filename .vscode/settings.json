@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/jerahmie/cmrr_venv/bin/python",
+    "python.pythonPath": "C:\\Users\\jerahmie\\AppData\\Local\\conda\\conda\\envs\\cmrr_venv\\python.exe",
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -14,5 +14,7 @@
     "python.venvFolders": [
         "~/cmrr_venv",
         "~/"
-    ]
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }

@@ -49,7 +49,7 @@ class FieldReaderCST2019(FieldReaderABC):
         Args:
             field_dir: Directory where hdf5 field data is located
             field_type: one of standard CST 3d "field" types ('e-field', 'h-field',...)
-            freq: field monitor frequency value (e.g. 297.3)
+            freq: field monitor frequency value (e.g. 297.3) in MHz
             excitation_type: one of standard CST 3d excitation types 'pw', 'AC', 'Trans',
             rotating_frame: if True, field values will be stored in rotating frame (assumed along z-axis)
         Returns:
@@ -99,7 +99,7 @@ class FieldReaderCST2019(FieldReaderABC):
                     self._complex_fields = np.empty(field_dim, dtype=np.complex)
 
                 # construct field array
-                print("Normalization: ", self._normalization)
+
                 if rotating_frame:
                     # positive rotating frame (e.g. B1+)
                     fx = fxre + 1.0j*fxim

@@ -21,8 +21,8 @@ def sarmask_cleanup(input_filename, output_filename):
 
     mask_radius = 100 # mm
 
-    zmax = 390 # mm
-    zmin = 150 # mm
+    zmax = 150 # mm
+    zmin = -150 # mm
     print('zdim: ', zdim)
     zmax_ind = np.argmin(abs(zdim - zmax))
     zmin_ind = np.argmin(abs(zdim - zmin))
@@ -66,14 +66,14 @@ def sarmask_cleanup(input_filename, output_filename):
 if "__main__" == __name__:
     print("Post-processing SAR mask.")
     if 'win32' == sys.platform:
-        sarmask_filename = os.path.join(r'D:', os.sep,
-                                        r'CST_Projects', 
+        sarmask_filename = os.path.join(r'E:', os.sep,
+                                        r'CST_Backup', 
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
     elif 'linux' == sys.platform:
         sarmask_filename = os.path.join(r'/mnt',
                                         r'Data',
-                                        r'CST_Projects',
+                                        r'CST_Backup',
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
 
