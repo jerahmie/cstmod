@@ -19,12 +19,14 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
     efields_fr = FieldReaderCST2019()
     efields_fr.normalization = normalization
     print('e-field normalization: ', efields_fr.normalization)
+    print('[DEBUG] Saving',  os.path.join(export_dir, 'efMapArrayN.mat'))
     efields_fr.write_vopgen(freq0, export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
                             export_type='e-field', merge_type='AC',
                             rotating_frame=False)
     hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
+    print('[DEBUG] Saving ', os.path.join(export_dir, 'bfMapArrayN.mat'))
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
                             export_type='h-field', merge_type='AC',
@@ -56,14 +58,16 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
     hdf5storage.savemat(os.path.join(export_dir, 'mat_properties_raw.mat'), mat_property_dict, oned_as='column')
 
 if "__main__" == __name__:
-    freq0 = 297.2  # Frequency of interest
+    freq0 = 297  # Frequency of interest
     print("vopgen cst2019 tests...")
     if 'win32' == sys.platform:
         base_mount = os.path.join('E:', os.sep)
     else:
         base_mount = os.path.join('/mnt', 'e')
-    project_path = os.path.join(base_mount, 'CST_Backup', \
-                               '16Tx_7T_LB_Phantom_40mm_shield_MRT_PVP_agar_gel_E')
+    #project_path = os.path.join(base_mount, 'CST_Backup', \
+    #                           '16Tx_7T_LB_Phantom_40mm_shield_MRT_PVP_agar_gel_E')
+    project_path = os.path.join(base_mount, 'CST_Results', \
+                   'STTR_Tx_Lightbulb')
     accepted_power_file_pattern = os.path.join(project_path, 'Export',
                                                'Power_Excitation*_Power Accepted (DS).txt')
     accepted_power_narray = GenericDataNArray()
@@ -74,7 +78,7 @@ if "__main__" == __name__:
     normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
     print(normalization)
     
-    vopgen_dir = os.path.join(project_path, '..', 'Vopgen')
+    vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
     export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))

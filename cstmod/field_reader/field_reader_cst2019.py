@@ -179,18 +179,23 @@ class FieldReaderCST2019(FieldReaderABC):
             print("trying to create vopgen directory")
             os.makedirs(output_dir)
 
-        export_type = self.cst_3d_field_types[export_type]
+        #export_type = self.cst_3d_field_types[export_type]
         self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
         export_dict = dict()
         export_dict[u'XDim'] = self._xdim
         export_dict[u'YDim'] = self._ydim
         export_dict[u'ZDim'] = self._zdim
-        if 'E-Field' == export_type:
+        print('[field_reader_cst2019] export_type', export_type)
+        if 'e-field' == export_type:
+            print('[field_reader_cst2019] ', output_file)
             export_dict[u'efMapArrayN'] = self._complex_fields
             hdf5storage.savemat(output_file, export_dict, oned_as='column')
-        elif 'H-Field' == export_type:
+        elif 'h-field' == export_type:
+            print('[field_reader_cst2019] ', output_file)
             export_dict[u'bfMapArrayN'] = mu_0 * self._complex_fields
             hdf5storage.savemat(output_file, export_dict, oned_as='column')
+        else:
+            raise Exception('Invalid field type: ', export_type)
 
     @property
     def normalization(self):
