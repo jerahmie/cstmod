@@ -1,3 +1,4 @@
+#!/bin/env python
 """Trial vopgen exporter using cst2019 hdf5 exported field files.
 """
 import os
@@ -56,23 +57,25 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
     hdf5storage.savemat(os.path.join(export_dir, 'mat_properties_raw.mat'), mat_property_dict, oned_as='column')
 
 if "__main__" == __name__:
-    freq0 = 297.2  # Frequency of interest
+    freq0 = 447  # Frequency of interest
+    nchannels = 8
     print("vopgen cst2019 tests...")
     if 'win32' == sys.platform:
         base_mount = os.path.join('E:', os.sep)
     else:
-        base_mount = os.path.join('/mnt', 'e')
-    project_path = os.path.join(base_mount, 'CST_Backup', \
-                               '16Tx_7T_LB_Phantom_40mm_shield_MRT_PVP_agar_gel_E')
-    accepted_power_file_pattern = os.path.join(project_path, 'Export',
-                                               'Power_Excitation*_Power Accepted (DS).txt')
-    accepted_power_narray = GenericDataNArray()
-    accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
-    f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
-    accepted_power_at_freq = np.abs(accepted_power_at_freq)
-    print("accepted power: ", accepted_power_at_freq)
-    normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
-    print(normalization)
+        base_mount = os.path.join('/export', 'raid1', 'jerahmie-data')
+    project_path = os.path.join(base_mount, \
+                               'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
+    #accepted_power_file_pattern = os.path.join(project_path, 'Export',
+    #                                           'Power_Excitation*_Power Accepted (DS).txt')
+    #accepted_power_narray = GenericDataNArray()
+    #accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+    #f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
+    #accepted_power_at_freq = np.abs(accepted_power_at_freq)
+    #print("accepted power: ", accepted_power_at_freq)
+    #normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
+    normalization = [1.0 for i in range(nchannels)]
+    #print(normalization)
     
     vopgen_dir = os.path.join(project_path, '..', 'Vopgen')
     export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)

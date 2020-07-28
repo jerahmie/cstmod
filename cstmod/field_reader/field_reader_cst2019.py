@@ -41,8 +41,9 @@ class FieldReaderCST2019(FieldReaderABC):
         self._zdim = None
         self._normalization = [1.0]
         self._source_dir = ""
+        self._dim_scale = 0.001
 
-    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False):
+    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, version='2020'):
         """Read fields from multiple files.  A field patter will be constructed
         from input values.  A FileNotFoundError will be raised if a set of files
         cannot be constructed.
@@ -58,11 +59,19 @@ class FieldReaderCST2019(FieldReaderABC):
             FileNotFoundError 
         """
         # Reset field storage prior to reading.
-        self._complex_fields = None  
-        file_name_pattern = os.path.abspath(field_dir) + os.path.sep \
-                                            + field_type + r' (f=' \
-                                            + str(freq) + r') [' \
-                                            + excitation_type + '*].h5'
+        self._complex_fields = None
+        if version == '2020':
+            #try lower case field file naming convention (cst2020)
+            file_name_pattern = os.path.abspath(field_dir) + os.path.sep \
+                                + field_type.lower() + r' (f=' \
+                                + str(freq) + r') [' \
+                                + excitation_type + '*].h5'
+        else:
+            file_name_pattern = os.path.abspath(field_dir) + os.path.sep \
+                                + field_type + r' (f=' \
+                                + str(freq) + r') [' \
+                                + excitation_type + '*].h5'
+
         self._freq = freq
         self._excitation_type = excitation_type
         self._process_file_list(file_name_pattern)
@@ -75,9 +84,9 @@ class FieldReaderCST2019(FieldReaderABC):
                 raise FileNotFoundError
             with h5py.File(file_name,'r') as dataf:
                 try:
-                    xdim = dataf['Mesh line x'][()]
-                    ydim = dataf['Mesh line y'][()]
-                    zdim = dataf['Mesh line z'][()]
+                    xdim = self._dim_scale * dataf['Mesh line x'][()]
+                    ydim = self._dim_scale * dataf['Mesh line y'][()]
+                    zdim = self._dim_scale * dataf['Mesh line z'][()]
                     fxre = np.transpose(dataf[self.cst_3d_field_types[field_type.lower()]]['x']['re'],(2,1,0))
                     fxim = np.transpose(dataf[self.cst_3d_field_types[field_type.lower()]]['x']['im'],(2,1,0))
                     fyre = np.transpose(dataf[self.cst_3d_field_types[field_type.lower()]]['y']['re'],(2,1,0))
@@ -134,7 +143,11 @@ class FieldReaderCST2019(FieldReaderABC):
             file_list = [os.path.join(self._source_dir, file) for file in fnmatch.filter(os.listdir(os.path.dirname(file_name_pattern)),file_base_pattern)]
             print("file_list: ", file_list)
         else:
-            file_list = glob.glob(self._pad_bracket_string(file_name_pattern))
+            print('[DEBUG] field_reader_cst2019 process_file_list ', file_name_pattern)
+            glob_string = self._pad_bracket_string(file_name_pattern)
+            print('glob_string: ', glob_string)
+            file_list = glob.glob(glob_string)
+            print('file_list: ', file_list)
 
         if 0 == len(file_list):
             raise KeyError("File pattern not found: " + file_name_pattern )
