@@ -42,7 +42,8 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
                                               efield_data, hfield_data)
     sarmask = SARMaskCST2019(f0, xdim, ydim, zdim,
                              normal_dielectric.epsilon_r,
-                             normal_dielectric.sigma_eff)
+                             normal_dielectric.sigma_eff
+                             )
     sarmask.epsr_min = 2
     sarmask.epsr_max = 100
     sarmask.sigma_min = 0.2 # (S/m)
@@ -56,16 +57,57 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
     mat_property_dict['ZDim'] = zdim
     hdf5storage.savemat(os.path.join(export_dir, 'mat_properties_raw.mat'), mat_property_dict, oned_as='column')
 
+def export_vopgen_mask_from_current_density(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_data, current_density):
+    """Calculate vopgen masks from electric fields and current density.
+    """
+    normal_dielectric = xmat.NormalDielectric(f0, xdim, ydim, zdim,
+                                              efield_data, hfield_data,
+                                               current_density)
+    sarmask = SARMaskCST2019(f0, xdim, ydim, zdim,
+                             normal_dielectric.epsilon_r,
+                             normal_dielectric.sigma_eff_from_currents[:,:,:,0])
+    sarmask.epsr_min = 2
+    sarmask.epsr_max = 100
+    sarmask.sigma_min = 0.2 # (S/m)
+    sarmask.sigma_max = 1.0 # (S/m)  Exclude conductors
+    sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned_raw.mat'))
+    mat_property_dict = dict()
+    mat_property_dict['epsr'] = normal_dielectric.epsilon_r
+    mat_property_dict['sigma_eff'] = normal_dielectric.sigma_eff_from_currents
+    mat_property_dict['XDim'] = xdim
+    mat_property_dict['YDim'] = ydim
+    mat_property_dict['ZDim'] = zdim
+    hdf5storage.savemat(os.path.join(export_dir, 'mat_properties_raw.mat'), mat_property_dict, oned_as='column')    
+
+def load_current_data(field_data_file):
+    """Load current density data."""
+    with h5py.File(field_data_file, 'r') as dataj:
+        jxre = np.transpose(dataj['Conduction Current Density']['x']['re'], (2, 1, 0))
+        jxim = np.transpose(dataj['Conduction Current Density']['x']['im'], (2, 1, 0))
+        jyre = np.transpose(dataj['Conduction Current Density']['y']['re'], (2, 1, 0))
+        jyim = np.transpose(dataj['Conduction Current Density']['y']['im'], (2, 1, 0))
+        jzre = np.transpose(dataj['Conduction Current Density']['z']['re'], (2, 1, 0))
+        jzim = np.transpose(dataj['Conduction Current Density']['z']['im'], (2, 1, 0))
+    jfield_data = np.zeros((np.shape(jxre)[0],
+                            np.shape(jxre)[1],
+                            np.shape(jxre)[2], 3),
+                            dtype = np.complex)
+    jfield_data[:,:,:,0] = jxre + 1.0j*jxim
+    jfield_data[:,:,:,1] = jyre + 1.0j*jyim
+    jfield_data[:,:,:,2] = jzre + 1.0j*jzim
+
+    return jfield_data
+
 if "__main__" == __name__:
     freq0 = 447  # Frequency of interest
     nchannels = 8
     print("vopgen cst2019 tests...")
     if 'win32' == sys.platform:
-        base_mount = os.path.join('E:', os.sep)
+        base_mount = os.path.join('D:', os.sep,'Temp_CST')
     else:
         base_mount = os.path.join('/export', 'raid1', 'jerahmie-data')
     project_path = os.path.join(base_mount, \
-                               'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
+                               'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds')
     #accepted_power_file_pattern = os.path.join(project_path, 'Export',
     #                                           'Power_Excitation*_Power Accepted (DS).txt')
     #accepted_power_narray = GenericDataNArray()
@@ -86,20 +128,37 @@ if "__main__" == __name__:
 
     # Choose a shim solution for extracting mask and material properties
     # (initially cp-like mode)
-    (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
-    ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
-    hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+    current_density_file = os.path.join(project_path, 'Export','3d', 'current (f=447) [AC1].h5')
+    #if 0:
+    if os.path.exists(current_density_file):
+        # Calculate mask from current density and E-field
+        current_density = load_current_data(current_density_file)
 
-    phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
-    for channel in range(nchannels):
-        ef_mask_shim += efMapArrayN[:,:,:,:,channel] * \
-                        np.exp(-1.0j*phases[channel])
-        hf_mask_shim += (1.0/sp.constants.mu_0)*bfMapArrayN_rect[:,:,:,:,channel] * \
-                        np.exp(-1.0j*phases[channel])
+        ef_shape = np.shape(efMapArrayN)
+        bf_shape = np.shape(bfMapArrayN_rect)
+        export_vopgen_mask_from_current_density(vopgen_dir, freq0,
+                                                efMapArrayN_dict['XDim'],
+                                                efMapArrayN_dict['YDim'],
+                                                efMapArrayN_dict['ZDim'],
+                                                efMapArrayN[:,:,:,:,0],
+                                                1.0/sp.constants.mu_0*bfMapArrayN_rect[:,:,:,:,0],
+                                                current_density)
+    else:
+        # Calculate mask from E- and H- fields
+        (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
+        ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+        hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+
+        phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
+        for channel in range(nchannels):
+            ef_mask_shim += efMapArrayN[:,:,:,:,channel] * \
+                            np.exp(-1.0j*phases[channel])
+            hf_mask_shim += (1.0/sp.constants.mu_0)*bfMapArrayN_rect[:,:,:,:,channel] * \
+                            np.exp(-1.0j*phases[channel])
     
-    export_vopgen_mask(vopgen_dir, freq0,
-                       efMapArrayN_dict['XDim'],
-                       efMapArrayN_dict['YDim'],
-                       efMapArrayN_dict['ZDim'],
-                       ef_mask_shim,
-                       hf_mask_shim)
+        export_vopgen_mask(vopgen_dir, freq0,
+                           efMapArrayN_dict['XDim'],
+                           efMapArrayN_dict['YDim'],
+                           efMapArrayN_dict['ZDim'],
+                           ef_mask_shim,
+                           hf_mask_shim)
