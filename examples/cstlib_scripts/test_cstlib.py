@@ -44,8 +44,8 @@ def probe_results(cst_project_file):
         run_params = rm3d.get_parameter_combination(run)
         print(run_params)
         print(rm3d.get_tree_items())
-
-
+    
+    result_item = rm3d.get_result_item(run_ids[-1])
 
 if __name__ == "__main__":
     print("CST: ")
