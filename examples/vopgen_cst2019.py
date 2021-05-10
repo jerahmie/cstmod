@@ -99,15 +99,20 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 447  # Frequency of interest
-    nchannels = 8
+    freq0 = 300  # Frequency of interest
+    nchannels = 16
+    generate_mask = True
+
     print("vopgen cst2019 tests...")
     if 'win32' == sys.platform:
-        base_mount = os.path.join('D:', os.sep,'Temp_CST')
+        base_mount = os.path.join('F:', os.sep)
     else:
         base_mount = os.path.join('/export', 'raid1', 'jerahmie-data')
-    project_path = os.path.join(base_mount, \
-                               'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds')
+    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds')
+    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds_hard_ground')
+    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_2')
+    #project_path = os.path.join(base_mount, 'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
+    project_path = os.path.join(base_mount, '16Tx_7T_LB Phantom_40mm shield_1_4_1')
     #accepted_power_file_pattern = os.path.join(project_path, 'Export',
     #                                           'Power_Excitation*_Power Accepted (DS).txt')
     #accepted_power_narray = GenericDataNArray()
@@ -119,7 +124,10 @@ if "__main__" == __name__:
     normalization = [1.0 for i in range(nchannels)]
     #print(normalization)
     
-    vopgen_dir = os.path.join(project_path, '..', 'Vopgen')
+    vopgen_dir = os.path.join(project_path, 'Export', '3d', 'Vopgen')
+    if not os.path.exists(vopgen_dir):
+        os.mkdir(vopgen_dir)
+
     export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
@@ -130,35 +138,36 @@ if "__main__" == __name__:
     # (initially cp-like mode)
     current_density_file = os.path.join(project_path, 'Export','3d', 'current (f=447) [AC1].h5')
     #if 0:
-    if os.path.exists(current_density_file):
-        # Calculate mask from current density and E-field
-        current_density = load_current_data(current_density_file)
+    if generate_mask:
+        if os.path.exists(current_density_file):
+            # Calculate mask from current density and E-field
+            current_density = load_current_data(current_density_file)
 
-        ef_shape = np.shape(efMapArrayN)
-        bf_shape = np.shape(bfMapArrayN_rect)
-        export_vopgen_mask_from_current_density(vopgen_dir, freq0,
-                                                efMapArrayN_dict['XDim'],
-                                                efMapArrayN_dict['YDim'],
-                                                efMapArrayN_dict['ZDim'],
-                                                efMapArrayN[:,:,:,:,0],
-                                                1.0/sp.constants.mu_0*bfMapArrayN_rect[:,:,:,:,0],
-                                                current_density)
-    else:
-        # Calculate mask from E- and H- fields
-        (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
-        ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
-        hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+            ef_shape = np.shape(efMapArrayN)
+            bf_shape = np.shape(bfMapArrayN_rect)
+            export_vopgen_mask_from_current_density(vopgen_dir, freq0,
+                                                    efMapArrayN_dict['XDim'],
+                                                    efMapArrayN_dict['YDim'],
+                                                    efMapArrayN_dict['ZDim'],
+                                                    efMapArrayN[:,:,:,:,0],
+                                                    1.0/sp.constants.mu_0*bfMapArrayN_rect[:,:,:,:,0],
+                                                    current_density)
+        else:
+            # Calculate mask from E- and H- fields
+            (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
+            ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+            hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
 
-        phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
-        for channel in range(nchannels):
-            ef_mask_shim += efMapArrayN[:,:,:,:,channel] * \
-                            np.exp(-1.0j*phases[channel])
-            hf_mask_shim += (1.0/sp.constants.mu_0)*bfMapArrayN_rect[:,:,:,:,channel] * \
-                            np.exp(-1.0j*phases[channel])
+            phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
+            for channel in range(nchannels):
+                ef_mask_shim += efMapArrayN[:,:,:,:,channel] * \
+                                np.exp(-1.0j*phases[channel])
+                hf_mask_shim += (1.0/sp.constants.mu_0)*bfMapArrayN_rect[:,:,:,:,channel] * \
+                                np.exp(-1.0j*phases[channel])
     
-        export_vopgen_mask(vopgen_dir, freq0,
-                           efMapArrayN_dict['XDim'],
-                           efMapArrayN_dict['YDim'],
-                           efMapArrayN_dict['ZDim'],
-                           ef_mask_shim,
-                           hf_mask_shim)
+            export_vopgen_mask(vopgen_dir, freq0,
+                               efMapArrayN_dict['XDim'],
+                               efMapArrayN_dict['YDim'],
+                               efMapArrayN_dict['ZDim'],
+                               ef_mask_shim,
+                               hf_mask_shim)

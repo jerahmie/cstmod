@@ -67,8 +67,10 @@ def sarmask_cleanup(input_filename, output_filename):
 if "__main__" == __name__:
     print("Post-processing SAR mask.")
     if 'win32' == sys.platform:
-        sarmask_filename = os.path.join(r'E:', os.sep,
-                                        r'CST_Backup', 
+        sarmask_filename = os.path.join(r'F:', os.sep,
+                                        r'16Tx_7T_LB Phantom_40mm shield_1_4_1', 
+                                        r'Export',
+                                        r'3d',
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
     elif 'linux' == sys.platform:

@@ -112,8 +112,8 @@ def plot_raw_fields_hdf5(hdf5_file, field_type='E-Field'):
 if __name__ == "__main__":
     #sar_mask_file = os.path.join('/export','raid1','jerahmie-data', \
     #                             'Vopgen','sarmask_aligned.mat')
-    vopgen_dir = os.path.join('D:', os.sep, 'Temp_CST','Vopgen')
-    sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned_raw.mat')
+    vopgen_dir = os.path.join('D:', os.sep, 'Temp_CST','KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4', 'Vopgen')
+    sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned.mat')
     material_file = os.path.join(vopgen_dir, 'mat_properties_raw.mat')
     bfmaparrayn_rect_file = os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat')
     print("Plotting the SAR mask")

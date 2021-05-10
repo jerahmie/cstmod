@@ -125,7 +125,7 @@ class FieldReaderCST2019(FieldReaderABC):
                     self._complex_fields[:,:,:,1,channel] = self._normalization[channel] * (fyre + 1.0j*fyim)
                     # Z-fields
                     self._complex_fields[:,:,:,2,channel] = self._normalization[channel] * (fzre + 1.0j*fzim)
-            # set x-, y-, z- dimensions
+            # set x-, listy-, z- dimensions
             self._xdim = xdim
             self._ydim = ydim
             self._zdim = zdim
