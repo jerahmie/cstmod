@@ -26,6 +26,7 @@ def check_for_fields(results_dir, results_pattern):
     cst_internal_results = find_cst_files(os.path.join(results_dir, results_pattern))
     cst_internal_results_sorted = sort_cst_internal_results([os.path.basename(result) for result in cst_internal_results])
     nresults = len(cst_internal_results)
+    print("Expecting ", nresults, " field results...")
     result_dirname = os.path.dirname(cst_internal_results[0])
     result_name_slices = re.match(r'^([a-zA-Z0-9\(\)\-=. ]*_)([0-9]*)(,[0-9]*.)(m3d|m3t)$', os.path.basename(cst_internal_results_sorted[-1])).groups()
     max_result = int(result_name_slices[1])
