@@ -5,6 +5,7 @@ import csv
 import numpy as np
 import scipy.io as spio
 
+accepted_power = [2.67479e-19, 2.53509e-19, 2.57445e-19, 2.70529e-19, 3.02819e-19, 2.92014e-19, 2.88874e-19, 3.21899e-19, 2.61459e-19, 3.390277e-19, 3.27098e-19, 1.98715e-19, 3.48907e-19, 2.557820e-19, 2.42046e-19, 2.81527e-19]
 field_prefix = os.path.join('F:\\', 'KU_ten_32_Tx_MRT', 'Export', '3d')
 efield_file_names = ["e-field (f=447) [Tran" + str(i+1) + "].txt" for i in range(16)]
 efield_file_paths = [os.path.join(field_prefix, filename) for filename in efield_file_names]
@@ -49,12 +50,13 @@ for i in range(len(efield_file_names)):
         next(field_reader)
         row_count = 0
         for row in field_reader:
-            exre[row_count, i] = float(row[3])
-            eyre[row_count, i] = float(row[4])
-            ezre[row_count, i] = float(row[5])
-            exim[row_count, i] = float(row[6])
-            eyim[row_count, i] = float(row[7])
-            ezim[row_count, i] = float(row[8])
+            # P ~ 1/2|E|*|E|
+            exre[row_count, i] = float(row[3])*2.0/np.sqrt(accepted_power[i]) 
+            eyre[row_count, i] = float(row[4])*2.0/np.sqrt(accepted_power[i])
+            ezre[row_count, i] = float(row[5])*2.0/np.sqrt(accepted_power[i])
+            exim[row_count, i] = float(row[6])*2.0/np.sqrt(accepted_power[i])
+            eyim[row_count, i] = float(row[7])*2.0/np.sqrt(accepted_power[i])
+            ezim[row_count, i] = float(row[8])*2.0/np.sqrt(accepted_power[i])
             row_count += 1
 
 save_dict = {}
@@ -68,5 +70,5 @@ save_dict['exim'] = exim
 save_dict['eyim'] = eyim
 save_dict['ezim'] = ezim
 print('saving mat file')
-spio.savemat('efields.mat', save_dict, oned_as='column')
+spio.savemat('efields_norm.mat', save_dict, oned_as='column')
 #exre = np.reshape(exre, (len(xdim), len(ydim), len(zdim)))
