@@ -73,5 +73,5 @@ def sort_cst_internal_results(unsorted_files):
     """CST saves em fields in a results folder.  Feild results are stored in a
     proprietary format, with formats varying depending on the mesh type.
     """
-    sorted_files = sorted(unsorted_files, key=lambda fl: int(re.search(r'^[0-9a-zA-Z:\\_\-\(\) =]*_([0-9]*),[0-9]*.(m3d|m3t)$',fl).group(1)))
+    sorted_files = sorted(unsorted_files, key=lambda fl: int(re.search(r'^[0-9a-zA-Z:\\_\-\(\) =]*_([0-9]*),[0-9]*(.m3d|.m3t|_m3d.rex|_m3d_sct.rex)$',fl).group(1)))
     return sorted_files
