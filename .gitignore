@@ -109,3 +109,6 @@ venv.bak/
 # Testing Data
 ./Test_Data/*
 !.Test_Data/readme.txt
+./test_data/*
+!.test_data/readme.txt
+

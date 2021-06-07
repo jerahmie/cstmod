@@ -1,3 +1,4 @@
+#!/bin/env python
 """sar_mask_cleanup.py
 Post-process sarmask.  Apply cleanup and filter steps and save as new file.
 """
@@ -19,10 +20,10 @@ def sarmask_cleanup(input_filename, output_filename):
     y0 = 0.0
     z0 = 0.0
 
-    mask_radius = 100 # mm
+    mask_radius = 0.100 # mm
 
-    zmax = 150 # mm
-    zmin = -150 # mm
+    zmax = 0.150 # mm
+    zmin = -0.150 # mm
     print('zdim: ', zdim)
     zmax_ind = np.argmin(abs(zdim - zmax))
     zmin_ind = np.argmin(abs(zdim - zmin))
@@ -66,14 +67,16 @@ def sarmask_cleanup(input_filename, output_filename):
 if "__main__" == __name__:
     print("Post-processing SAR mask.")
     if 'win32' == sys.platform:
-        sarmask_filename = os.path.join(r'E:', os.sep,
-                                        r'CST_Backup', 
+        sarmask_filename = os.path.join(r'F:', os.sep,
+                                        r'16Tx_7T_LB Phantom_40mm shield_1_4_1', 
+                                        r'Export',
+                                        r'3d',
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
     elif 'linux' == sys.platform:
-        sarmask_filename = os.path.join(r'/mnt',
-                                        r'Data',
-                                        r'CST_Backup',
+        sarmask_filename = os.path.join(r'/export',
+                                        r'raid1',
+                                        r'jerahmie-data',
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
 
