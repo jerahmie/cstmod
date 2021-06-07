@@ -95,7 +95,7 @@ def plot_b1plus_shim(bfmap_file, shim_mags, shim_phases, mask_file=None):
                 b1[:,:,:,comp,ch] = np.multiply(b1[:,:,:,comp,ch], sarmask)
     # apply shim
     b1_shim = np.zeros((b1_shape[0], b1_shape[1], b1_shape[2]),
-                       dtype=np.complex)
+                       dtype=np.complex128)
 
     for ch in range(nchannels):
         b1_shim += shim_mags[ch]*b1[:,:,:,comp,ch]*np.exp(1.0j*shim_phases[ch])
@@ -147,8 +147,8 @@ if __name__ == "__main__":
     #                          r'Vopgen')
 
     vopgen_dir = os.path.join(r'D:', os.sep,
-                             r'Temp_CST',
-                             r'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_2',
+                             r'Temp_CST', r'Vopgen',
+                             r'KU_ten_32_Tx_MRT_23Jul2019',
                               r'Vopgen')
                               
     #vopgen_dir = os.path.join(r'D:', os.sep,
@@ -185,9 +185,10 @@ if __name__ == "__main__":
     #                 sarmask_file)
 
     # plot cp-like mode
+    nchannels = 16
     plot_b1plus_shim(bfmap_array_file,
-                     1.0/np.sqrt(8.0)*np.ones((8), dtype = np.float),
-                     np.array([a/8.0*2.0*np.pi for a in np.arange(0,8)]),
+                     1.0/np.sqrt(nchannels)*np.ones((nchannels), dtype = np.float64),
+                     np.array([a/nchannels*2.0*np.pi for a in np.arange(0,nchannels)]),
                      sarmask_file)
 
     # plot cp-2+
