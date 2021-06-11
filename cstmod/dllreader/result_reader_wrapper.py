@@ -30,12 +30,18 @@ class CSTProjHandle(Structure):
 class ResultReaderDLL(object):
     """ResultReaderDLL - A wrapper class to provide an interface to the library
     functions provided by the CSTResultReaderDLL.
+
+    Args:
+        string: cst_project_file: path to CST Project file
+        string: cst_version
     """
-    def __init__(self, cst_version):
+    def __init__(self, cst_project_file, cst_version):
+        print("__init__")
         resultreaderdll_file = CSTRegInfo.find_result_reader_dll(cst_version)
         self._resultReaderDLL = WinDLL(resultreaderdll_file)
         self._projh = CSTProjHandle() # project handle 
         self._dll_version = None
+        self._cst_project_file = cst_project_file
 
         # ResultReaderDLL functions
         #
@@ -59,6 +65,37 @@ class ResultReaderDLL(object):
         self._CST_CloseProject.argtypes = [POINTER(CSTProjHandle)]
         self._CST_CloseProject.restype = c_int
 
+        #
+        # CST_GetItemNames
+        #
+        self._CST_GetItemNames = self._resultReaderDLL.CST_GetItemNames
+        self._CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, c_char_p,
+                                           c_int, POINTER(c_int)]
+        self._CST_GetItemNames.restypes = c_int
+
+    def __enter__(self):
+        """ Open CST project upon entering class.
+        """
+        print("__enter__")
+        ret_val = self.open_project()
+
+        print("Opened CST project: ", self._projh.m_pProj)
+        if ret_val != 0:
+            raise(Exception("CST project file could not be opened (" + 
+                            self._cst_project_file + ")"))
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        """ Close CST project upon exiting class. 
+        """
+        print("__exit__")
+        if exc_type is not None:
+            traceback.print_exception(exc_type, exc_value, tb)
+        if self._projh.m_pProj is not None:
+            self.close_project()
+        return True
+
     def _get_dll_version(self):
         """Retrieve ResultReaderDLL version.
         """
@@ -77,46 +114,76 @@ class ResultReaderDLL(object):
             self._get_dll_version()
         return self._dll_version
 
-    def open_project(self, cst_project_file):
+    def open_project(self, cst_project_file=None):
         """Open the CST Project
             Args:
-                string: cst_project_file: path to CST Project file
+                string: cst_project - CST project file name
             Return: 
                 int: Return value - 0 = success
                                     12 = file not found
         """
-        project_file = create_string_buffer(cst_project_file.encode('utf-8'))
-        print(type(self._projh))
-        val = self._CST_OpenProject(project_file, byref(self._projh))
+        if cst_project_file is not None:
+            self._cst_project_file = cst_project_file
+        print("opening cst project file: ", self._cst_project_file)
+        project_file_string_buffer = create_string_buffer(self._cst_project_file.encode('utf-8'))
+
+        val = self._CST_OpenProject(project_file_string_buffer, byref(self._projh))
         return val
 
     def close_project(self):
         """Close the Open CST Project
         Args: None
         Return:
-            int: Return value
+            int: return value
         """
         val = self._CST_CloseProject(byref(self._projh))
+        return val 
 
-    #
-    # CST_OpenProject
-    #
-
-    #CST_OpenProject = ResultReaderDLL.CST_OpenProject
-    #CST_OpenProject.argtypes = [c_char_p, POINTER(CSTProjHandle)]
-    #CST_OpenProject.restype = c_int
-
+    def get_item_names(self, item_tree_path):
+        """get_item_names 
+        Get the item names for a given item tree path and the number of elements 
+        underneath that tree.
+        Args: 
+            string: item_tree_path - path of the item in the CST item tree
+        Return:
+            int: number of items below current path
+            strin: item path
+        """
+        #out_buffer = create_string_buffer(1024)
+        #out_buffer_len = c_int(1024)
+        #num_items = c_int(1)
+         
+        #val = self._CST_GetItemNames(byref(self._projh),
+        #                             b'1D Results\Balance\Balance [2]',
+        #                             out_buffer, 
+        #                             out_buffer_len,
+        #                             byref(num_items))
+        out_buffer = create_string_buffer(1024)
+        out_buffer_len = c_int(1024)
+        num_items = c_int(1)
+    
+        val = self._CST_GetItemNames(byref(self._projh),
+                               b'1D Results\Balance\Balance [2]',
+                               out_buffer, 
+                               out_buffer_len,
+                               byref(num_items)
+                               )
+        print('val: ', val)
+        print('item_names_buffer: ', out_buffer.value)
+        print('out_buffer_len: ', out_buffer_len)
+        print('num_items: ', num_items)
+        #if val != 0:
+        #    raise(Exception("Item Name ("+ item_tree_path + ") not found."))
+        #return val, out_buffer.value.decode('utf-8')
 
 def query_resultreaderdll(resultreaderdll_file, cst_project_file):
     """Use the win32com.client to 
     """
-    
     #rrdll = WinDLL(resultreaderdll_file)
     #rrdll.restype = c_int
     #rrdll.argtypes = POINTER(c_int)
-    rrdll_version = c_int()
-    
-
+    #rrdll_version = c_int()
+    resultReaderDLL = WinDLL(resultreaderdll_file)
 
     #
     # CST_OpenProject
@@ -160,11 +227,11 @@ def query_resultreaderdll(resultreaderdll_file, cst_project_file):
     print('----------------------------')
     print('CST_GetItemNames')
     out_buffer = create_string_buffer(1024)
-    out_buffer_len = c_int(32)
-    num_items = c_int(1)
+    out_buffer_len = c_int(1024)
+    num_items = c_int()
     
     val = CST_GetItemNames(byref(project_handle),
-                           b'1D Results\Balance\Balance [2]',
+                           b'1D Results\Balance',
                            out_buffer, 
                            out_buffer_len,
                            byref(num_items))
