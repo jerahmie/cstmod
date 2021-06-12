@@ -21,6 +21,8 @@ except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
 
 
+RESULTS_TREE_MAX_PATH=500000  # maximum number of characters in tree path
+
 class CSTProjHandle(Structure):
     """CSTProjHandle
     CST Project handle for open projects.  Wraps the following typedef struct:
@@ -142,9 +144,9 @@ class ResultReaderDLL(object):
         Return:
             list: results
         """
-        out_buffer = create_string_buffer(1024)
-        out_buffer_len = c_int(1024)
-        num_items = c_int(1)
+        out_buffer = create_string_buffer(RESULTS_TREE_MAX_PATH)
+        out_buffer_len = c_int(RESULTS_TREE_MAX_PATH)
+        num_items = c_int(0)
     
         val = self._CST_GetItemNames(byref(self._projh),
                                item_tree_path.encode(),
@@ -195,9 +197,7 @@ def query_resultreaderdll(resultreaderdll_file, cst_project_file):
 
     project_handle = CSTProjHandle()
     project_handle2 = CSTProjHandle()
-    #print('project_handle: ', type(project_handle))
     project_handle_pointer = pointer(project_handle)
-   # projh = project_handle_pointer()
 
     # open project
     print('project_handle_pointer:', type(project_handle_pointer))
@@ -206,7 +206,6 @@ def query_resultreaderdll(resultreaderdll_file, cst_project_file):
     print(project_handle.m_pProj)
 
     # Get item names
-    #tree_path_name = create_string_buffer("1D Results")
     print('----------------------------')
     print('CST_GetItemNames')
     out_buffer = create_string_buffer(1024)
