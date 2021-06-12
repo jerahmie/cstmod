@@ -24,10 +24,8 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
 
     def setUp(self):
         self._rrdll_version = '2020'
-        print('test_file: ', self.cst_test_file_name)
         self.rrdll = ResultReaderDLL(self.cst_test_file_name, self._rrdll_version)
         self.rrdll.open_project()
-        print(self.rrdll._projh.m_pProj)
 
     def test_unittest_setup(self):
         """make sure the unit test frame work is properly initialized and 
@@ -62,10 +60,9 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         """
         if self.rrdll._projh.m_pProj is not None:
             self.rrdll.close_project()
-            
+
         rrdll = ResultReaderDLL(self.cst_test_file_name, self._rrdll_version)
         rrdll.open_project()
-        print('test_CSTProject_open_close: ', rrdll._cst_project_file)
         self.assertIsNotNone(rrdll._projh.m_pProj)
         rrdll.close_project()
         self.assertIsNone(rrdll._projh.m_pProj)
@@ -73,20 +70,21 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     def test_get_item_names(self):
         """Test the get_item_names method. 
         """
-        print(self.rrdll._projh.m_pProj)
         self.assertTrue( hasattr(self.rrdll, 'get_item_names') )
-        # close the default project, if open
+        #close the default project, if open
         if self.rrdll._projh.m_pProj is not None:
             self.rrdll.close_project()
-
+        nresults_balance = 0
+        one_d_results_balance = ''
         with ResultReaderDLL(self.cst_test_file_name, self._rrdll_version) as results:
-            self.assertTrue( hasattr(results, 'get_item_names' ))
-        #self.assertEqual(self.rrdll.get_item_names('1D Results\Balance'),
-        #                 (0,'1D Results\Balance'))
-        #self.assertEqual(self.rrdll.get_item_names('1D Results'),
-        #                 (0,'1D Results'))
-        #self.assertEqual(self.rrdll.get_item_names('1D Results\Balance'),
-        #                 (0,'1D Results\Balance'))
+            hasattr_result = hasattr(results, 'get_item_names' )
+            one_d_results_balance = results.get_item_names('1D Results\Balance')
+        self.assertTrue(hasattr_result)
+        self.assertEqual(3, len(one_d_results_balance))
+        self.assertEqual(one_d_results_balance,
+                         ['1D Results\\Balance\\Balance [1]',
+                          '1D Results\\Balance\\Balance [2]',
+                          '1D Results\\Balance\\Balance [3]'])
 
     def tearDown(self):
         self.rrdll.close_project()

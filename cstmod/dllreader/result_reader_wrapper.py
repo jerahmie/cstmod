@@ -5,6 +5,7 @@ all functionality for the CST Result Reader has yet to be announced by CST or
 Dassault Systemmes.  JWR 6/10/2021
 """
 import os
+import traceback
 from ctypes import *
 
 try:
@@ -36,7 +37,6 @@ class ResultReaderDLL(object):
         string: cst_version
     """
     def __init__(self, cst_project_file, cst_version):
-        print("__init__")
         resultreaderdll_file = CSTRegInfo.find_result_reader_dll(cst_version)
         self._resultReaderDLL = WinDLL(resultreaderdll_file)
         self._projh = CSTProjHandle() # project handle 
@@ -76,20 +76,16 @@ class ResultReaderDLL(object):
     def __enter__(self):
         """ Open CST project upon entering class.
         """
-        print("__enter__")
         ret_val = self.open_project()
-
-        print("Opened CST project: ", self._projh.m_pProj)
         if ret_val != 0:
             raise(Exception("CST project file could not be opened (" + 
                             self._cst_project_file + ")"))
-
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
         """ Close CST project upon exiting class. 
         """
-        print("__exit__")
+
         if exc_type is not None:
             traceback.print_exception(exc_type, exc_value, tb)
         if self._projh.m_pProj is not None:
@@ -124,9 +120,7 @@ class ResultReaderDLL(object):
         """
         if cst_project_file is not None:
             self._cst_project_file = cst_project_file
-        print("opening cst project file: ", self._cst_project_file)
         project_file_string_buffer = create_string_buffer(self._cst_project_file.encode('utf-8'))
-
         val = self._CST_OpenProject(project_file_string_buffer, byref(self._projh))
         return val
 
@@ -146,35 +140,24 @@ class ResultReaderDLL(object):
         Args: 
             string: item_tree_path - path of the item in the CST item tree
         Return:
-            int: number of items below current path
-            strin: item path
+            list: results
         """
-        #out_buffer = create_string_buffer(1024)
-        #out_buffer_len = c_int(1024)
-        #num_items = c_int(1)
-         
-        #val = self._CST_GetItemNames(byref(self._projh),
-        #                             b'1D Results\Balance\Balance [2]',
-        #                             out_buffer, 
-        #                             out_buffer_len,
-        #                             byref(num_items))
         out_buffer = create_string_buffer(1024)
         out_buffer_len = c_int(1024)
         num_items = c_int(1)
     
         val = self._CST_GetItemNames(byref(self._projh),
-                               b'1D Results\Balance\Balance [2]',
+                               item_tree_path.encode(),
                                out_buffer, 
                                out_buffer_len,
                                byref(num_items)
                                )
-        print('val: ', val)
-        print('item_names_buffer: ', out_buffer.value)
-        print('out_buffer_len: ', out_buffer_len)
-        print('num_items: ', num_items)
-        #if val != 0:
-        #    raise(Exception("Item Name ("+ item_tree_path + ") not found."))
-        #return val, out_buffer.value.decode('utf-8')
+        
+        item_names = out_buffer.value.decode('utf-8').splitlines()
+        if num_items.value != len(item_names):
+            raise(Exception("Expected number of results differs from reported: ", 
+                            num_items.value, " vs. ", len(item_names)))
+        return  item_names
 
 def query_resultreaderdll(resultreaderdll_file, cst_project_file):
     """Use the win32com.client to 
