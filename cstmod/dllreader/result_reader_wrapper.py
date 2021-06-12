@@ -43,6 +43,8 @@ class ResultReaderDLL(object):
         self._projh = CSTProjHandle() # project handle 
         self._dll_version = None
         self._cst_project_file = cst_project_file
+        self._project_result_path = None
+        self._project_3d_result_path = None
 
         # ResultReaderDLL functions
         #
@@ -70,19 +72,27 @@ class ResultReaderDLL(object):
         # CST_GetItemNames
         #
         self._CST_GetItemNames = self._resultReaderDLL.CST_GetItemNames
-        self._CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, c_char_p,
-                                           c_int, POINTER(c_int)]
+        self._CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, 
+                                           c_char_p, c_int, POINTER(c_int)]
         self._CST_GetItemNames.restypes = c_int
 
         #
         # CST_GetNumberOfResults
         #
+        self._CST_GetNumberOfResults = self._resultReaderDLL.CST_GetNumberOfResults
+        self._CST_GetNumberOfResults.argtypes = [POINTER(CSTProjHandle), 
+                                                c_char_p, POINTER(c_int)]
+        self._CST_GetNumberOfResults.restype = c_int
 
         #
         # CST_GetProjectPath
         #
+        self._CST_GetProjectPath = self._resultReaderDLL.CST_GetProjectPath
+        self._CST_GetProjectPath.argtypes = [POINTER(CSTProjHandle), 
+                                             c_char_p, c_char_p]
+        self._CST_GetProjectPath.restype = c_int
 
-        # ----------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # 1-D Results (not yet implemented)
         # 
         # CST_Get1DResultInfo
@@ -166,7 +176,7 @@ class ResultReaderDLL(object):
         # CST_WriteBixDataInt32
         # CST_WriteBixDataInt64
         # CST_CloseBixFile
-        
+
 
     def __enter__(self):
         """ Open CST project upon entering class.
@@ -228,12 +238,12 @@ class ResultReaderDLL(object):
         val = self._CST_CloseProject(byref(self._projh))
         return val 
 
-    def get_item_names(self, item_tree_path):
-        """get_item_names 
+    def item_names(self, item_tree_path):
+        """item_names 
         Get the item names for a given item tree path and the number of elements 
         underneath that tree.
         Args: 
-            string: item_tree_path - path of the item in the CST item tree
+            string: item_tree_path - path of the item in the CST Result Tree.
         Return:
             list: results
         """
@@ -245,88 +255,79 @@ class ResultReaderDLL(object):
                                item_tree_path.encode(),
                                out_buffer, 
                                out_buffer_len,
-                               byref(num_items)
-                               )
+                               byref(num_items))
         
         item_names = out_buffer.value.decode('utf-8').splitlines()
         if num_items.value != len(item_names):
             raise(Exception("Expected number of results differs from reported: ", 
                             num_items.value, " vs. ", len(item_names)))
+        
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetItemNames returned error code: " + str(val)))
+
         return  item_names
 
-def query_resultreaderdll(resultreaderdll_file, cst_project_file):
-    """Use the win32com.client to 
-    """
-    #rrdll = WinDLL(resultreaderdll_file)
-    #rrdll.restype = c_int
-    #rrdll.argtypes = POINTER(c_int)
-    #rrdll_version = c_int()
-    resultReaderDLL = WinDLL(resultreaderdll_file)
+    def number_of_results(self, item_tree_path):
+        """number_of_results
+        Returns the number of results under the result tree.
+        Args:
+            string: item_tree_path - path of the item in the CST Result Tree.
+        Return:
+            int: number of results  
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            5 - Tree path is not a leaf
+        """
+        num_items = c_int(0)
+        val = self._CST_GetNumberOfResults(byref(self._projh),
+                                     item_tree_path.encode(),
+                                     byref(num_items))
+        print('number of results: ', num_items.value)
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetNumberOfResults returned error code: " + str(val)))
 
-    #
-    # CST_OpenProject
-    #
-    CST_OpenProject = resultReaderDLL.CST_OpenProject
-    CST_OpenProject.argtypes = [c_char_p, POINTER(CSTProjHandle)]
-    CST_OpenProject.restype = c_int
-    
-    #
-    # CST_CloseProject
-    #
-    CST_CloseProject = resultReaderDLL.CST_CloseProject
-    CST_CloseProject.argtypes = [POINTER(CSTProjHandle)]
-    CST_CloseProject.restype = c_int
-    
-    #
-    # CST_GetItemNames
-    #
-    CST_GetItemNames = resultReaderDLL.CST_GetItemNames
-    CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, c_char_p,
-                                 c_int, POINTER(c_int)]
-    CST_GetItemNames.restypes = c_int
+        return num_items.value
 
-    project_name = create_string_buffer(cst_project_file.encode('utf-8'))
-    #project_name = c_char_p("Hello.cst".encode('utf-8'))
+    def _get_project_path(self, path_type):
+        """_get_project_path 
+        Args:
+            None
+        Return:
+            string: Patch of the CST Project file
 
-    project_handle = CSTProjHandle()
-    project_handle2 = CSTProjHandle()
-    project_handle_pointer = pointer(project_handle)
+        Raises:
 
-    # open project
-    print('project_handle_pointer:', type(project_handle_pointer))
-    val = CST_OpenProject(project_name, byref(project_handle))
-    print(val, project_name.value)
-    print(project_handle.m_pProj)
+        """
+        project_path_buffer = create_string_buffer(RESULTS_TREE_MAX_PATH)
+        val = self._CST_GetProjectPath(self._projh,
+                                       path_type.encode(),
+                                       project_path_buffer)
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetProjectPath returned error code: " + str(val)))
+        
+        result_path = project_path_buffer.value.decode('utf-8')
+        if path_type.lower() == 'result':
+            self._project_result_path = result_path
+        elif path_type.lower() == 'model3d':
+            self._project_3d_result_path = result_path
+        else:
+            raise(Exception("Unknown CST Result Path Type: " + path_type))
+        
 
-    # Get item names
-    print('----------------------------')
-    print('CST_GetItemNames')
-    out_buffer = create_string_buffer(1024)
-    out_buffer_len = c_int(1024)
-    num_items = c_int()
-    
-    val = CST_GetItemNames(byref(project_handle),
-                           b'1D Results\Balance',
-                           out_buffer, 
-                           out_buffer_len,
-                           byref(num_items))
-    print('val: ', val)
-    print('item_names_buffer: ', out_buffer.value)
-    print('out_buffer_len: ', out_buffer_len)
-    print('num_items: ', num_items)
+    @property
+    def project_result_path(self):
+        """Return the project Results path.
+        """
+        if self._project_result_path is None:
+            self._get_project_path('Result')
 
+        return self._project_result_path
 
-    # close project and finish up
-    val = CST_CloseProject(byref(project_handle))
-    print("Close Project: ", val)
-    print(project_handle.m_pProj)
-    
+    @property
+    def project_3d_result_path(self):
+        """Return the project 3D Results path.
+        """
+        if self._project_3d_result_path is None:
+            self._get_project_path('Model3D')
 
-if __name__ == "__main__":
-    cst_project_file = os.path.join(r'D:\\',r'CST_Projects',r'Simple_Cosim.cst')
-    print("CST Project found? ", cst_project_file, ': ', os.path.exists(cst_project_file))
-    print("Running ResultReaderDLL query...")
-    resultreaderdll_file = CSTRegInfo.find_result_reader_dll('2020')
-    print("ResultReaderDLL path: ", resultreaderdll_file)
-    query_resultreaderdll(resultreaderdll_file, cst_project_file)
-    print("Done.")
+        return self._project_3d_result_path

@@ -16,8 +16,8 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        #cst_test_file_name = os.path.join(os.path.abspath(os.path.join(__file__,'..','..','test_data','Simple_Cosim','Simple_Cosim.cst')))
-        cst_test_file_name = os.path.join("D:\\", 'CST_Projects','Simple_Cosim.cst')
+        cst_test_file_name = os.path.join(os.path.abspath(os.path.join(__file__,'..','..','test_data','Simple_Cosim','Simple_Cosim.cst')))
+        #cst_test_file_name = os.path.join("D:\\", 'CST_Projects','Simple_Cosim.cst')
         cls.cst_test_file_name = None
         if os.path.exists(cst_test_file_name):
             cls.cst_test_file_name = cst_test_file_name
@@ -70,15 +70,15 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     def test_get_item_names(self):
         """Test the get_item_names method. 
         """
-        self.assertTrue( hasattr(self.rrdll, 'get_item_names') )
+        self.assertTrue( hasattr(self.rrdll, 'item_names') )
         #close the default project, if open
         if self.rrdll._projh.m_pProj is not None:
             self.rrdll.close_project()
         nresults_balance = 0
         one_d_results_balance = ''
         with ResultReaderDLL(self.cst_test_file_name, self._rrdll_version) as results:
-            hasattr_result = hasattr(results, 'get_item_names' )
-            one_d_results_balance = results.get_item_names('1D Results\Balance')
+            hasattr_result = hasattr(results, 'item_names' )
+            one_d_results_balance = results.item_names('1D Results\Balance')
         self.assertTrue(hasattr_result)
         self.assertEqual(3, len(one_d_results_balance))
         self.assertEqual(one_d_results_balance,
@@ -89,13 +89,32 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     def test_get_one_d_results(self):
         """More tests for 1D Results
         """
-        one_d_results = self.rrdll.get_item_names('1D Results')
-        print(one_d_results)
+        one_d_results = self.rrdll.item_names('1D Results')
         char_sum = 0
         for res in one_d_results:
             char_sum += len(res)
-        print("total length, 1-D results: ", char_sum)
-        self.assertEqual(-1, self.rrdll.get_item_names('1D Results'))
+        self.assertEqual(149, len(self.rrdll.item_names('1D Results')))
+
+    def test_get_number_of_results(self):
+        """Tests for CST_GetNumberOfResults
+        """
+        self.assertTrue( hasattr(self.rrdll, 'number_of_results') )
+        self.assertEqual(1, self.rrdll.number_of_results('1D Results\Balance\Balance [1]'))
+
+    def test_cst_project_path(self):
+        """project_path - returns the CST project path for the project handle.
+        This will be implemented as a parameter to retrieve the project path.
+        """
+        self.assertEqual(os.path.join(os.path.splitext(self.cst_test_file_name)[0],
+                                      'Result\\'), self.rrdll.project_result_path)
+        self.assertEqual(os.path.join(os.path.splitext(self.cst_test_file_name)[0],
+                                      'Model\\3D\\'), self.rrdll.project_3d_result_path)
+
+
+    def test_get_1d_result_info(self):
+        """Test the get_1d_result_info function
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_info'))
 
     def tearDown(self):
         self.rrdll.close_project()
