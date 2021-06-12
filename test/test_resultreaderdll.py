@@ -86,6 +86,17 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
                           '1D Results\\Balance\\Balance [2]',
                           '1D Results\\Balance\\Balance [3]'])
 
+    def test_get_one_d_results(self):
+        """More tests for 1D Results
+        """
+        one_d_results = self.rrdll.get_item_names('1D Results')
+        print(one_d_results)
+        char_sum = 0
+        for res in one_d_results:
+            char_sum += len(res)
+        print("total length, 1-D results: ", char_sum)
+        self.assertEqual(-1, self.rrdll.get_item_names('1D Results'))
+
     def tearDown(self):
         self.rrdll.close_project()
 

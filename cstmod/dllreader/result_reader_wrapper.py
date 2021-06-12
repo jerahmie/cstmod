@@ -20,7 +20,6 @@ except ImportError as error:
     print("This script assumes cstmod is installed: See README.md")
     print(error.__class__.__name__ + ": " + error.message)
 
-
 RESULTS_TREE_MAX_PATH=500000  # maximum number of characters in tree path
 
 class CSTProjHandle(Structure):
@@ -74,6 +73,100 @@ class ResultReaderDLL(object):
         self._CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, c_char_p,
                                            c_int, POINTER(c_int)]
         self._CST_GetItemNames.restypes = c_int
+
+        #
+        # CST_GetNumberOfResults
+        #
+
+        #
+        # CST_GetProjectPath
+        #
+
+        # ----------------------------------------------------------------------
+        # 1-D Results (not yet implemented)
+        # 
+        # CST_Get1DResultInfo
+        # CST_Get1DResultSize
+        # CST_Get1DRealDataOrdinate
+        # CST_Get1DRealDataAbszissa
+        # CST_Get1D_2Comp_DAta_Ordinate
+
+        #-----------------------------------------------------------------------
+        # 3-D Results (not yet implemented)
+        #
+        # CST_Get3DHexResultInfo
+        # CST_Get3DHexResultSize
+        # CST_Get3DHexResult
+
+        # ---------------------------------------------------------------------
+        # Far Fields (not implemented)
+
+        # ---------------------------------------------------------------------
+        # Probe Collection (not implemented)
+
+        # ---------------------------------------------------------------------
+        # Symmetries / Boundaries (not yet implemented)
+        # 
+        # CST_GetSymmetries
+        # CST_GEtBoundaries
+
+        # ----------------------------------------------------------------------
+        # Units (not yet implemented)
+        # LENGTH = 1, TEMPERATURE = 2, VOLTAGE = 3, CURRENT = 4, RESISTANCE = 5,
+        # CONDUCTANCE = 6, CAPACITANCE = 7, INDUCTANCE = 8, FREQUENCY = 9, 
+        # TIME = 10, POWER = 11
+
+        # ----------------------------------------------------------------------
+        # Excitations (not yet implemented)
+        # 
+
+        # ----------------------------------------------------------------------
+        # Hexahedral mesh (Only Regular Grids, no Subgrids, no TST)
+        # (not yet implemented)
+        # CST_GetHexMeshInfo
+        # CST_GetHexMesh
+
+        # ----------------------------------------------------------------------
+        # Hexahedral Material Matrix (not yet implemented)
+        # matType may be 0: Meps
+        #                1: Mmue
+        #                2: Mkappa 
+        # CST_GetMaterailMatrixHexMesh
+
+        # ----------------------------------------------------------------------
+        # Bix-file Information from Header (not yet implemented)
+        # 
+        # CST_GetBixInfo
+
+        # ----------------------------------------------------------------------
+        # BIX-File Information about quantities (not yet implemented)
+        # quantity types: Int32 = 1, Int64, Float32, Float64, Vector32, ComplexVector32, Vector64, SerialVector3x32, 
+        # SerialVector6x32 = 9 // xre_0 yre_0 zre_0 xim_0 yim_0 zim_0 xre_1 yre_1 ... zim_n
+        # UInt32 = 10, UInt64, Int8, UInt8, ComplexScalar32, ComplexScalar64, SerialComplexScalar32, SerialVector3x64
+        # CST_GetBixQuantity
+
+        # ----------------------------------------------------------------------
+        # BIX-File Information about length of lines
+        # CST_GetBixLineLength
+
+        # ----------------------------------------------------------------------
+        # Read BIX-File data
+        # Call with pointer to allocated memory (n*LineLength, n=3 for vector, n=6 for complex vector, see quantity type)
+        # CST_GetBixDataFloat
+        # CST_GetBixDataDouble
+        # CST_GetBixDataInt32
+        # CST_GetBixDataInt64
+
+        # ----------------------------------------------------------------------
+        # Write BIX-File
+        # CST_AddBixQuantity
+        # CST_AddBixLine
+        # CST_WriteBixHeader
+        # CST_WriteBixDataDouble
+        # CST_WriteBixDataInt32
+        # CST_WriteBixDataInt64
+        # CST_CloseBixFile
+        
 
     def __enter__(self):
         """ Open CST project upon entering class.
