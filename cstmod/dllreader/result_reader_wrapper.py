@@ -92,21 +92,48 @@ class ResultReaderDLL(object):
                                              c_char_p, c_char_p]
         self._CST_GetProjectPath.restype = c_int
 
-        # ---------------------------------------------------------------------
-        # 1-D Results (not yet implemented)
-        # 
+        # ----------------------------------------------------------------------
+        # 1-D Results 
+        # ----------------------------------------------------------------------
+        #
         # CST_Get1DResultInfo
+        #
+        self._CST_Get1DResultInfo = self._resultReaderDLL.CST_Get1DResultInfo
+        
+        #
         # CST_Get1DResultSize
+        #
+        #self._CST_Get1DResultSize = self._resultReaderDLL.CST_Get1DResultSize
+
+        #
         # CST_Get1DRealDataOrdinate
+        #
+        #self._CST_Get1DRealDataOrdinate = self._resultReaderDLL.CST_Get1DRealDataOrdinate
+
+        #
         # CST_Get1DRealDataAbszissa
+        #
+        #self._CST_Get1DRealDataAbszissa = self._resultReaderDLL.CST_Get1DRealDataAbszissa
+
+        #
         # CST_Get1D_2Comp_DAta_Ordinate
+        #
+        #self._CST_Get1D_2Comp_DataOrdinate = self._resultReaderDLL.CST_Get1D_2Comp_DataOrdinate
 
         #-----------------------------------------------------------------------
         # 3-D Results (not yet implemented)
+        #-----------------------------------------------------------------------
         #
         # CST_Get3DHexResultInfo
+        #
+        #self._CST_Get3DHexResultInfo
+        #
         # CST_Get3DHexResultSize
+        #
+
+        #
         # CST_Get3DHexResult
+        #
 
         # ---------------------------------------------------------------------
         # Far Fields (not implemented)
@@ -312,7 +339,6 @@ class ResultReaderDLL(object):
             self._project_3d_result_path = result_path
         else:
             raise(Exception("Unknown CST Result Path Type: " + path_type))
-        
 
     @property
     def project_result_path(self):
@@ -331,3 +357,8 @@ class ResultReaderDLL(object):
             self._get_project_path('Model3D')
 
         return self._project_3d_result_path
+
+    def _get_1d_result_info(self):
+        """Get 1d result info.
+        """
+        pass
