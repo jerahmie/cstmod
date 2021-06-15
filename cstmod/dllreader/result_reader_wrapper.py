@@ -7,9 +7,10 @@ Dassault Systemmes.  JWR 6/10/2021
 import os
 import traceback
 from ctypes import *
+import numpy as np
 
 try:
-    import win32com.client as win32
+    import win32com.client as win3
 except ImportError as error:
     print("This script assumes Windows with pywin32 installed.")
     print(error.__class__.__name__ + ": " + error.message)
@@ -37,7 +38,7 @@ class ResultReaderDLL(object):
         string: cst_project_file: path to CST Project file
         string: cst_version
     """
-    def __init__(self, cst_project_file, cst_version):
+    def __init__(self, cst_project_file: str, cst_version: str):
         resultreaderdll_file = CSTRegInfo.find_result_reader_dll(cst_version)
         self._resultReaderDLL = WinDLL(resultreaderdll_file)
         self._projh = CSTProjHandle() # project handle 
@@ -97,23 +98,36 @@ class ResultReaderDLL(object):
         # ----------------------------------------------------------------------
         #
         # CST_Get1DResultInfo
-        #
+        # 
         self._CST_Get1DResultInfo = self._resultReaderDLL.CST_Get1DResultInfo
+        self._CST_Get1DResultInfo.argtypes = [POINTER(CSTProjHandle),
+                                              c_char_p, c_int, c_int, c_int, 
+                                              c_char_p, POINTER(c_int), 
+                                              POINTER(c_double)]
+        self._CST_Get1DResultInfo.restype = c_int
         
         #
         # CST_Get1DResultSize
         #
-        #self._CST_Get1DResultSize = self._resultReaderDLL.CST_Get1DResultSize
-
+        self._CST_Get1DResultSize = self._resultReaderDLL.CST_Get1DResultSize
+        self._CST_Get1DResultSize.argtypes = [POINTER(CSTProjHandle),
+                                              c_char_p, c_int, POINTER(c_int)]
+        self._CST_Get1DResultSize.restype =  c_int
         #
         # CST_Get1DRealDataOrdinate
         #
-        #self._CST_Get1DRealDataOrdinate = self._resultReaderDLL.CST_Get1DRealDataOrdinate
+        self._CST_Get1DRealDataOrdinate = self._resultReaderDLL.CST_Get1DRealDataOrdinate
+        self._CST_Get1DRealDataOrdinate.argtypes = [POINTER(CSTProjHandle), 
+                                                    c_char_p, c_int, POINTER(c_double)]
+        self._CST_Get1DRealDataOrdinate.restype = c_int
 
         #
         # CST_Get1DRealDataAbszissa
         #
-        #self._CST_Get1DRealDataAbszissa = self._resultReaderDLL.CST_Get1DRealDataAbszissa
+        self._CST_Get1DRealDataAbszissa = self._resultReaderDLL.CST_Get1DRealDataAbszissa
+        self._CST_Get1DRealDataAbszissa.argtypes = [POINTER(CSTProjHandle), 
+                                                    c_char_p, c_int, POINTER(c_double)]
+        self._CST_Get1DRealDataAbszissa.restype = c_int
 
         #
         # CST_Get1D_2Comp_DAta_Ordinate
@@ -126,15 +140,17 @@ class ResultReaderDLL(object):
         #
         # CST_Get3DHexResultInfo
         #
-        #self._CST_Get3DHexResultInfo
+        #self._CST_Get3DHexResultInfo = self._resultReaderDLL.CST_Get3DHexResultInfo
+
         #
         # CST_Get3DHexResultSize
         #
+        #self._CST_Get3DHexResultSize = self._resultReaderDLL.CST_Get3DHexResultSize
 
         #
         # CST_Get3DHexResult
         #
-
+        #self._CST_Get3DHexResult = self._resultReaderDLL.CST_Get3DHexResult
         # ---------------------------------------------------------------------
         # Far Fields (not implemented)
 
@@ -152,6 +168,11 @@ class ResultReaderDLL(object):
         # LENGTH = 1, TEMPERATURE = 2, VOLTAGE = 3, CURRENT = 4, RESISTANCE = 5,
         # CONDUCTANCE = 6, CAPACITANCE = 7, INDUCTANCE = 8, FREQUENCY = 9, 
         # TIME = 10, POWER = 11
+        #self._CST_GetUnitScale = self._resultReaderDLL.CST_GetUnitScale
+        #self._CST_GetFrequencyScale = self._resultReaderDLL.CST_GetFrequencyScale
+        #self._CST_GetTimeScale = self._resultReaderDLL.CST_GetTimeScale
+        #self._CST_GetFrequencyMin = self._resultReaderDLL.CST_GetFrequencyMin
+        #self._CST_GetFrequencyMax = self._resultReaderDLL.CST_GetFrequencyMax
 
         # ----------------------------------------------------------------------
         # Excitations (not yet implemented)
@@ -161,7 +182,10 @@ class ResultReaderDLL(object):
         # Hexahedral mesh (Only Regular Grids, no Subgrids, no TST)
         # (not yet implemented)
         # CST_GetHexMeshInfo
+        #self._CST_GetHexMeshInfo = self._resultReaderDLL.CST_GetHexMeshInfo
+
         # CST_GetHexMesh
+        #self._CST_GetHexMesh = self._resultReaderDLL.CST_GetHexMesh
 
         # ----------------------------------------------------------------------
         # Hexahedral Material Matrix (not yet implemented)
@@ -169,11 +193,13 @@ class ResultReaderDLL(object):
         #                1: Mmue
         #                2: Mkappa 
         # CST_GetMaterailMatrixHexMesh
+        #self._CST_GetMaterialMatrixHexMesh = self._resultReaderDLL.CST_GetMaterialMatrixHexMesh
 
         # ----------------------------------------------------------------------
         # Bix-file Information from Header (not yet implemented)
         # 
         # CST_GetBixInfo
+        #self._CST_GetBixInfo = self._resultReaderDLL.CST_GetBixInfo
 
         # ----------------------------------------------------------------------
         # BIX-File Information about quantities (not yet implemented)
@@ -181,10 +207,12 @@ class ResultReaderDLL(object):
         # SerialVector6x32 = 9 // xre_0 yre_0 zre_0 xim_0 yim_0 zim_0 xre_1 yre_1 ... zim_n
         # UInt32 = 10, UInt64, Int8, UInt8, ComplexScalar32, ComplexScalar64, SerialComplexScalar32, SerialVector3x64
         # CST_GetBixQuantity
+        #self._CST_GetBixQuantity = self._resultReaderDLL.CST_GetBixQuantity
 
         # ----------------------------------------------------------------------
         # BIX-File Information about length of lines
         # CST_GetBixLineLength
+        #self._CST_GetBixLineLength = self._resultReaderDLL.CST_GetBixLineLength
 
         # ----------------------------------------------------------------------
         # Read BIX-File data
@@ -193,6 +221,10 @@ class ResultReaderDLL(object):
         # CST_GetBixDataDouble
         # CST_GetBixDataInt32
         # CST_GetBixDataInt64
+        #self._CST_GetBixDataFloat = self._resultReaderDLL.CST_GetBixDataFloat
+        #self._CST_GetBixDataDouble = self._resultReaderDLL.CST_GetBixDataDouble
+        #self._CST_GetBixDataInt32 = self._resultReaderDLL.CST_GetBixDataInt32
+        #self._CST_GetBixDataInt64 = self._resultReaderDLL.CST_GetBixDataInt64
 
         # ----------------------------------------------------------------------
         # Write BIX-File
@@ -203,7 +235,13 @@ class ResultReaderDLL(object):
         # CST_WriteBixDataInt32
         # CST_WriteBixDataInt64
         # CST_CloseBixFile
-
+        #self._CST_AddBixQuantity = self._resultReaderDLL.CST_AddBixQuantity
+        #self._CST_AddBixLine = self._resultReaderDLL.CST_AddBixLine
+        #self._CST_WriteBixHeader = self._resultReaderDLL.CST_WriteBixHeader
+        #self._CST_WriteBixDataDouble = self._resultReaderDLL.CST_WriteBixDataDouble
+        #self._CST_WriteBixDataInt32 = self._resultReaderDLL.CST_WriteBixDataInt32
+        #self._CST_WriteBixDataInt64 = self._resultReaderDLL.CST_WriteBixDataInt64
+        #self._CST_CloseBixFile = self._resultReaderDLL.CloseBixFile
 
     def __enter__(self):
         """ Open CST project upon entering class.
@@ -242,7 +280,7 @@ class ResultReaderDLL(object):
             self._get_dll_version()
         return self._dll_version
 
-    def open_project(self, cst_project_file=None):
+    def open_project(self, cst_project_file=None ):
         """Open the CST Project
             Args:
                 string: cst_project - CST project file name
@@ -265,7 +303,7 @@ class ResultReaderDLL(object):
         val = self._CST_CloseProject(byref(self._projh))
         return val 
 
-    def item_names(self, item_tree_path):
+    def item_names(self, item_tree_path: str) -> list:
         """item_names 
         Get the item names for a given item tree path and the number of elements 
         underneath that tree.
@@ -273,6 +311,9 @@ class ResultReaderDLL(object):
             string: item_tree_path - path of the item in the CST Result Tree.
         Return:
             list: results
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
         """
         out_buffer = create_string_buffer(RESULTS_TREE_MAX_PATH)
         out_buffer_len = c_int(RESULTS_TREE_MAX_PATH)
@@ -294,7 +335,7 @@ class ResultReaderDLL(object):
 
         return  item_names
 
-    def number_of_results(self, item_tree_path):
+    def number_of_results(self, item_tree_path: str) -> int:
         """number_of_results
         Returns the number of results under the result tree.
         Args:
@@ -315,15 +356,16 @@ class ResultReaderDLL(object):
 
         return num_items.value
 
-    def _get_project_path(self, path_type):
+    def _get_project_path(self, path_type: str) -> None:
         """_get_project_path 
         Args:
-            None
+            path_type: Path type is "result" or "model3d"
         Return:
-            string: Patch of the CST Project file
+            None
 
         Raises:
-
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
         """
         project_path_buffer = create_string_buffer(RESULTS_TREE_MAX_PATH)
         val = self._CST_GetProjectPath(self._projh,
@@ -358,7 +400,115 @@ class ResultReaderDLL(object):
 
         return self._project_3d_result_path
 
-    def _get_1d_result_info(self):
-        """Get 1d result info.
+    def _get_1d_result_info(self, tree_path_name: str,
+                            result_number: int, ) -> int:
+        """Get 1D result info.
+        This method is of limited usefullness, since most library info features 
+        are not implemented in the DLL. It is wrapped as a Python method for 
+        completeness.
+        Args: 
+            tree_path_name (str):  path of 1d result
+            result_number (int): result ID number, 0 for most recent. 
+                                See CST documentation for simulation result
+                                numbering.
+        Return:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+            5 - Tree path is not a leaf
+        Raises:
         """
-        pass
+        info_array_size = 2**10
+        char_buffer_size = 2**25
+        c_info_array_size = c_int(info_array_size)
+        c_char_buffer_size = c_int(char_buffer_size)
+        c_info = c_char_p(char_buffer_size)
+        i_info_p = (c_int * info_array_size)()
+        d_info = c_double(0)
+
+        c_result_number = c_int(result_number)
+        print('before get 1d result info: ')
+        val = self._CST_Get1DResultInfo(self._projh, tree_path_name.encode(), c_int(result_number),
+                                        c_info_array_size, c_char_buffer_size, 
+                                        c_info, i_info_p, byref(d_info))
+        print('After get 1d result info: ')
+        print('Val: ', val)
+        print('tree_path: ', tree_path_name)
+        #print('c_info: ', type(c_info))
+        print('c_info_array_size: ', c_info_array_size.value)
+        print('c_char_buffer_size: ', c_char_buffer_size.value)
+        #print('d_info: ', d_info.value)
+        print('i_info_p: ', i_info_p[0])
+
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_Get1DResultInfo returned error code: " + str(val)))
+        return val
+
+    def _get_1d_result_size(self, tree_path_name: str, 
+                            result_number: int ) -> int:
+        """Get 1D result size.
+        Args:
+            tree_path_name (str): path of the 1d result.
+            result_number (int): result ID number, 0 for most recent.
+                                 See CST documentation for simulation result
+                                 numbering.
+        Return:
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+            4 - Result tree path not valid
+            6 - Result number is not found
+        """
+        c_data_size = c_int(0)
+        val = self._CST_Get1DResultSize(self._projh, tree_path_name.encode(),
+                                        c_int(result_number), byref(c_data_size))
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_Get1DResultSize returned error code: " + str(val)))
+
+        return c_data_size.value
+
+    def _get_1d_real_data_ordinate(self, tree_path_name: str,
+                                   result_number: int,
+                                   data_length: int) -> np.ndarray:
+        """ _get_1d_read_data_ordinate
+        Args:
+            tree_path_name (str): path of the 1d result
+            result_number (int): result ID number, 0 for most recent
+                                 See CST documentation for simulation result
+                                 numbering.
+        Returns:
+            5 - Value does not have ordinate?
+        Raises:
+        """
+        buffer_size = self._get_1d_result_size(tree_path_name, result_number)
+        data_buffer = (c_double*buffer_size)()
+        val = self._CST_Get1DRealDataOrdinate(self._projh, tree_path_name.encode(),
+                                              c_int(result_number), data_buffer)
+
+        if val != 0:        
+            raise(Exception("ResultReaderDLL::CST_Get1DRealDataOrdinate returned error code: " + str(val)))
+        return np.array(data_buffer, dtype=np.float64)
+
+    def _get_1d_real_data_abszissa(self, tree_path_name: str,
+                                   result_number: int,
+                                   data_length: int) -> np.ndarray:
+        """_get_1d_real_data_abszissa
+        Args:
+            tree_path_name (str): path of the 1d result
+            result_number (int): result ID number, 0 for most recent
+                                 See CST documentation for simulation result
+                                 numbering.
+        Returns:
+        Raises:
+
+        """
+        buffer_size = self._get_1d_result_size(tree_path_name, result_number)
+        data_buffer = (c_double*buffer_size)()
+        val = self._CST_Get1DRealDataAbszissa(self._projh, tree_path_name.encode(),
+                                              c_int(result_number), data_buffer)
+
+        return np.array(data_buffer, dtype=np.float64)
+
+    #def _get_1d_2comp_data_ordinate():
+    #   """ 
+    #   """
+    #   pass

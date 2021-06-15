@@ -5,6 +5,8 @@ import os
 import sys
 import unittest
 import ctypes
+import numpy as np
+
 if sys.platform == "win32":
     from cstmod.dllreader import CSTProjHandle, ResultReaderDLL
 else:
@@ -23,7 +25,10 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
             cls.cst_test_file_name = cst_test_file_name
 
     def setUp(self):
+        # choose version of CST
         self._rrdll_version = '2020'
+        # number of frequency samples - set in Simulation Setup 
+        self._cst_project_f_samples = 1001
         self.rrdll = ResultReaderDLL(self.cst_test_file_name, self._rrdll_version)
         self.rrdll.open_project()
 
@@ -91,6 +96,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         """
         one_d_results = self.rrdll.item_names('1D Results')
         char_sum = 0
+        #print(one_d_results)
         for res in one_d_results:
             char_sum += len(res)
         self.assertEqual(149, len(self.rrdll.item_names('1D Results')))
@@ -110,11 +116,60 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         self.assertEqual(os.path.join(os.path.splitext(self.cst_test_file_name)[0],
                                       'Model\\3D\\'), self.rrdll.project_3d_result_path)
 
-
-    def test_get_1d_result_info(self):
-        """Test the get_1d_result_info function
+    def test_get_1d_result_size(self):
+        """ Test the get_1d_result_size method.
+        This method wraps CST_Get1DResultSize()
         """
-        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_info'))
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_size') )
+        results_1d = ['1D Results\S-Parameters\S4,3']
+        for res1 in results_1d:
+            self.assertEqual(self._cst_project_f_samples, self.rrdll._get_1d_result_size(res1, 0))
+
+    @unittest.skip
+    def test_get_1d_result_info(self):
+        """Test the get_1d_result_info method.
+        """
+        results_1d = ['1D Results\S-Parameters\S1,1']
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_info') )
+        self.assertEqual(-1, self.rrdll._get_1d_result_info(results_1d[0], 0 ))
+
+    def test_get_1d_real_data_ordinate(self):
+        """Test the get_1d_real_data_ordinate method.
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_ordinate') )
+        result_number = 0
+        result_1d = ['1D Results\Balance\Balance [1]']
+        for res1 in result_1d:
+            data_length = self.rrdll._get_1d_result_size(res1, result_number)
+            data_ordinate = self.rrdll._get_1d_real_data_ordinate(res1,
+                                                                  result_number,
+                                                                  data_length)
+            self.assertEqual(self._cst_project_f_samples, len(data_ordinate))
+
+
+    def test_get_1d_real_data_abszissa(self):
+        """Test the get_1d_real_data_abszissa class method.
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_abszissa') )
+        result_number = 0
+        result_1d = ['1D Results\Balance\Balance [1]', 
+                     '1D Results\S-Parameters\S1,1']
+        for res1 in result_1d:
+            data_length = self.rrdll._get_1d_result_size(res1, result_number)
+            data_abszissa = self.rrdll._get_1d_real_data_abszissa(res1,
+                                                                  result_number,
+                                                                  data_length)
+            self.assertEqual(self._cst_project_f_samples, len(data_abszissa))
+            self.assertTrue(np.allclose(data_abszissa, 
+                                        np.linspace(data_abszissa[0],
+                                                    data_abszissa[-1],
+                                                    num=1001, endpoint=True)))
+
+    @unittest.skip
+    def test_get_1d_2comp_data_ordinate(self):
+        """Test the get_1d_2comp_data_ordinate class method.
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_abszissa') )
 
     def tearDown(self):
         self.rrdll.close_project()
