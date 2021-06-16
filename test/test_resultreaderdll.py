@@ -6,6 +6,7 @@ import sys
 import unittest
 import ctypes
 import numpy as np
+import matplotlib.pyplot as plt
 
 if sys.platform == "win32":
     from cstmod.dllreader import CSTProjHandle, ResultReaderDLL
@@ -79,17 +80,16 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         #close the default project, if open
         if self.rrdll._projh.m_pProj is not None:
             self.rrdll.close_project()
-        nresults_balance = 0
         one_d_results_balance = ''
         with ResultReaderDLL(self.cst_test_file_name, self._rrdll_version) as results:
             hasattr_result = hasattr(results, 'item_names' )
-            one_d_results_balance = results.item_names('1D Results\Balance')
+            one_d_results_balance = results.item_names(r'1D Results\Balance')
         self.assertTrue(hasattr_result)
         self.assertEqual(3, len(one_d_results_balance))
         self.assertEqual(one_d_results_balance,
-                         ['1D Results\\Balance\\Balance [1]',
-                          '1D Results\\Balance\\Balance [2]',
-                          '1D Results\\Balance\\Balance [3]'])
+                         [r'1D Results\Balance\Balance [1]',
+                          r'1D Results\Balance\Balance [2]',
+                          r'1D Results\Balance\Balance [3]'])
 
     def test_get_one_d_results(self):
         """More tests for 1D Results
@@ -105,7 +105,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         """Tests for CST_GetNumberOfResults
         """
         self.assertTrue( hasattr(self.rrdll, 'number_of_results') )
-        self.assertEqual(1, self.rrdll.number_of_results('1D Results\Balance\Balance [1]'))
+        self.assertEqual(1, self.rrdll.number_of_results(r'1D Results\Balance\Balance [1]'))
 
     def test_cst_project_path(self):
         """project_path - returns the CST project path for the project handle.
@@ -120,30 +120,28 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         """ Test the get_1d_result_size method.
         This method wraps CST_Get1DResultSize()
         """
-        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_size') )
-        results_1d = ['1D Results\S-Parameters\S4,3']
+        self.assertTrue( hasattr(self.rrdll, r'_get_1d_result_size') )
+        results_1d = [r'1D Results\S-Parameters\S4,3']
         for res1 in results_1d:
             self.assertEqual(self._cst_project_f_samples, self.rrdll._get_1d_result_size(res1, 0))
 
-    @unittest.skip
+    @unittest.skip("Skipping due to lack of implementation in CST_ResultReaderDLL.")
     def test_get_1d_result_info(self):
         """Test the get_1d_result_info method.
         """
-        results_1d = ['1D Results\S-Parameters\S1,1']
-        self.assertTrue( hasattr(self.rrdll, '_get_1d_result_info') )
+        results_1d = [r'1D Results\S-Parameters\S1,1']
+        self.assertTrue( hasattr(self.rrdll, r'_get_1d_result_info') )
         self.assertEqual(-1, self.rrdll._get_1d_result_info(results_1d[0], 0 ))
 
     def test_get_1d_real_data_ordinate(self):
         """Test the get_1d_real_data_ordinate method.
         """
-        self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_ordinate') )
+        self.assertTrue( hasattr(self.rrdll, r'_get_1d_real_data_ordinate') )
         result_number = 0
-        result_1d = ['1D Results\Balance\Balance [1]']
+        result_1d = [r'1D Results\Balance\Balance [1]']
         for res1 in result_1d:
             data_length = self.rrdll._get_1d_result_size(res1, result_number)
-            data_ordinate = self.rrdll._get_1d_real_data_ordinate(res1,
-                                                                  result_number,
-                                                                  data_length)
+            data_ordinate = self.rrdll._get_1d_real_data_ordinate(res1, result_number)
             self.assertEqual(self._cst_project_f_samples, len(data_ordinate))
 
 
@@ -152,24 +150,38 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         """
         self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_abszissa') )
         result_number = 0
-        result_1d = ['1D Results\Balance\Balance [1]', 
-                     '1D Results\S-Parameters\S1,1']
+        result_1d = [r'1D Results\Balance\Balance [1]', 
+                     r'1D Results\S-Parameters\S1,1']
         for res1 in result_1d:
             data_length = self.rrdll._get_1d_result_size(res1, result_number)
-            data_abszissa = self.rrdll._get_1d_real_data_abszissa(res1,
-                                                                  result_number,
-                                                                  data_length)
+            data_abszissa = self.rrdll._get_1d_real_data_abszissa(res1, result_number)
             self.assertEqual(self._cst_project_f_samples, len(data_abszissa))
-            self.assertTrue(np.allclose(data_abszissa, 
+            self.assertTrue(np.allclose(data_abszissa,
                                         np.linspace(data_abszissa[0],
                                                     data_abszissa[-1],
                                                     num=1001, endpoint=True)))
 
-    @unittest.skip
     def test_get_1d_2comp_data_ordinate(self):
-        """Test the get_1d_2comp_data_ordinate class method.
+        """Test the get_1d_2comp_data_ordinae class method.
         """
-        self.assertTrue( hasattr(self.rrdll, '_get_1d_real_data_abszissa') )
+        self.assertTrue( hasattr(self.rrdll, '_get_1d_2comp_data_ordinate') )
+        result_number = 0
+        result_1d = [r'1D Results\S-Parameters\S2,3', 
+                     r'1D Results\S-Parameters\S1,1'] 
+        fname_dir = os.path.join(os.path.abspath(os.path.join(__file__,'..','..','test_data')))
+        for res1 in result_1d:
+            data_length = self.rrdll._get_1d_result_size(res1, result_number)
+            freq_data = self.rrdll._get_1d_real_data_abszissa(res1, result_number)
+            comp_data = self.rrdll._get_1d_2comp_data_ordinate(res1, result_number)
+
+            #self.assertEqual(data_length, len(comp_data))
+            # save the figures to check
+            fig_name = res1.replace(' ', '_').replace('\\','_').replace(',','_').replace('-','_')+'.png'
+            plt.plot(freq_data, 20*np.log10(np.abs(comp_data)))
+            plt.savefig(fname=fig_name, dpi=None, facecolor='w', edgecolor='w',
+                orientation='portrait', papertype=None, format=None,
+                transparent=False, bbox_inches=None, pad_inches=0.1,
+                frameon=None, metadata=None)
 
     def tearDown(self):
         self.rrdll.close_project()

@@ -75,7 +75,7 @@ class ResultReaderDLL(object):
         self._CST_GetItemNames = self._resultReaderDLL.CST_GetItemNames
         self._CST_GetItemNames.argtypes = [POINTER(CSTProjHandle), c_char_p, 
                                            c_char_p, c_int, POINTER(c_int)]
-        self._CST_GetItemNames.restypes = c_int
+        self._CST_GetItemNames.restype = c_int
 
         #
         # CST_GetNumberOfResults
@@ -132,7 +132,10 @@ class ResultReaderDLL(object):
         #
         # CST_Get1D_2Comp_DAta_Ordinate
         #
-        #self._CST_Get1D_2Comp_DataOrdinate = self._resultReaderDLL.CST_Get1D_2Comp_DataOrdinate
+        self._CST_Get1D_2Comp_DataOrdinate = self._resultReaderDLL.CST_Get1D_2Comp_DataOrdinate
+        self._CST_Get1D_2Comp_DataOrdinate.argtypes = [POINTER(CSTProjHandle),
+                                                       c_char_p, c_int, POINTER(c_double)]
+        self._CST_Get1D_2Comp_DataOrdinate.restype = c_int
 
         #-----------------------------------------------------------------------
         # 3-D Results (not yet implemented)
@@ -447,11 +450,12 @@ class ResultReaderDLL(object):
                             result_number: int ) -> int:
         """Get 1D result size.
         Args:
-            tree_path_name (str): path of the 1d result.
-            result_number (int): result ID number, 0 for most recent.
+            tree_path_name : path of the 1d result.
+            result_number : result ID number, 0 for most recent.
                                  See CST documentation for simulation result
                                  numbering.
         Return:
+            int : number of elements in 1D data structure.
         Raises:
             Raises exception when return value from ResultReaderDLL is not 0
             0 - Success
@@ -467,17 +471,19 @@ class ResultReaderDLL(object):
         return c_data_size.value
 
     def _get_1d_real_data_ordinate(self, tree_path_name: str,
-                                   result_number: int,
-                                   data_length: int) -> np.ndarray:
+                                   result_number: int) -> np.ndarray:
         """ _get_1d_read_data_ordinate
         Args:
-            tree_path_name (str): path of the 1d result
-            result_number (int): result ID number, 0 for most recent
+            tree_path_name : path of the 1d result
+            result_number : result ID number, 0 for most recent
                                  See CST documentation for simulation result
                                  numbering.
         Returns:
-            5 - Value does not have ordinate?
+            numpy ndarray :  length=data_length, type=np.float64
         Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+            5 - Value does not have ordinate?
         """
         buffer_size = self._get_1d_result_size(tree_path_name, result_number)
         data_buffer = (c_double*buffer_size)()
@@ -489,17 +495,18 @@ class ResultReaderDLL(object):
         return np.array(data_buffer, dtype=np.float64)
 
     def _get_1d_real_data_abszissa(self, tree_path_name: str,
-                                   result_number: int,
-                                   data_length: int) -> np.ndarray:
+                                   result_number: int) -> np.ndarray:
         """_get_1d_real_data_abszissa
         Args:
-            tree_path_name (str): path of the 1d result
-            result_number (int): result ID number, 0 for most recent
+            tree_path_name : path of the 1d result
+            result_number  : result ID number, 0 for most recent
                                  See CST documentation for simulation result
                                  numbering.
         Returns:
+            numpy ndarray :  length=data_length, type=np.float64
         Raises:
-
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
         """
         buffer_size = self._get_1d_result_size(tree_path_name, result_number)
         data_buffer = (c_double*buffer_size)()
@@ -508,7 +515,28 @@ class ResultReaderDLL(object):
 
         return np.array(data_buffer, dtype=np.float64)
 
-    #def _get_1d_2comp_data_ordinate():
-    #   """ 
-    #   """
-    #   pass
+    def _get_1d_2comp_data_ordinate(self, tree_path_name: str,
+                                    result_number: int) -> np.ndarray:
+        """_get_1d_2comp_data_ordinate
+         Args:
+            tree_path_name : path of the 1d result
+            result_number : result ID number, 0 for most recent
+                                 See CST documentation for simulation result
+                                 numbering.
+         Returns: 
+            numpy ndarray : length=data_length, type
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+        """
+        buffer_size  = self._get_1d_result_size(tree_path_name, result_number)
+        data_buffer = (c_double*(buffer_size*2))()
+        val = self._CST_Get1D_2Comp_DataOrdinate(self._projh, tree_path_name.encode(),
+                                                c_int(result_number), data_buffer)
+        if val != 0:
+           raise(Exception("ResultReaderDLL::CST_Get1D_2Comp_DataOrdinate returned error code: " + str(val)))
+        
+        data_re = np.array(data_buffer[0::2], dtype=np.float64)
+        data_im = np.array(data_buffer[1::2], dtype=np.float64)
+        return data_re + 1.0j*data_im
+
