@@ -176,9 +176,52 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
 
             #self.assertEqual(data_length, len(comp_data))
             # save the figures to check
-            fig_name = res1.replace(' ', '_').replace('\\','_').replace(',','_').replace('-','_')+'.png'
-            plt.plot(freq_data, 20*np.log10(np.abs(comp_data)))
-            plt.savefig(fname=fig_name, dpi=None, facecolor='w', edgecolor='w',
+            #fig_name = res1.replace(' ', '_').replace('\\','_').replace(',','_').replace('-','_')+'.png'
+            #plt.plot(freq_data, 20*np.log10(np.abs(comp_data)))
+            #plt.savefig(fname=fig_name, dpi=None, facecolor='w', edgecolor='w',
+            #    orientation='portrait', papertype=None, format=None,
+            #    transparent=False, bbox_inches=None, pad_inches=0.1,
+            #    frameon=None, metadata=None)
+    
+    @unittest.skip("")
+    def test_get_3d_hex_result_info(self):
+        """test the _get_3d_hex_result_info
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_3d_hex_result_info') )
+        self.assertEqual(self.rrdll._get_3d_hex_result_info(r'2D/3D Results\H-Field\h-field (f=63.65) [3]', 0), -1)
+
+
+    def test_get_3d_hex_result_size(self):
+        """test the _get_3d_hex_result_size method
+        """
+        hex_result_3d_size = 188915328
+        self.assertTrue( hasattr(self.rrdll, '_get_3d_hex_result_size') )
+        results_3d = self.rrdll.item_names(r'2D/3D Results')
+        for res3d in results_3d:
+            print(res3d)
+            self.assertEqual(self.rrdll._get_3d_hex_result_size(res3d, 0),hex_result_3d_size)
+
+    def test_get_hex_mesh_info(self):
+        """test the get_hex_mesh_info
+        """
+        mesh_size = (378, 274, 304)
+        self.assertTrue( hasattr(self.rrdll, '_get_hex_mesh_info') )
+        self.assertEqual(mesh_size, self.rrdll._get_hex_mesh_info())
+
+    def test_get_hex_mesh(self):
+        """test the _get_hex_mesh method
+        """
+        (nx, ny, nz) = self.rrdll._get_hex_mesh_info()
+        self.assertTrue( hasattr(self.rrdll, '_get_hex_mesh') )
+        (xdim, ydim, zdim) = self.rrdll._get_hex_mesh()
+        self.assertEqual(len(xdim),  nx)
+        self.assertEqual(len(ydim),  ny)
+        self.assertEqual(len(zdim),  nz)
+        fig, ax = plt.subplots(1,3)
+        ax[0].plot(xdim)
+        ax[1].plot(ydim)
+        ax[2].plot(zdim)
+        plt.savefig(fname='hex_mesh_info.png', dpi=None, facecolor='w', edgecolor='w',
                 orientation='portrait', papertype=None, format=None,
                 transparent=False, bbox_inches=None, pad_inches=0.1,
                 frameon=None, metadata=None)

@@ -143,13 +143,20 @@ class ResultReaderDLL(object):
         #
         # CST_Get3DHexResultInfo
         #
-        #self._CST_Get3DHexResultInfo = self._resultReaderDLL.CST_Get3DHexResultInfo
+        self._CST_Get3DHexResultInfo = self._resultReaderDLL.CST_Get3DHexResultInfo
+        self._CST_Get3DHexResultInfo.argtypes = [POINTER(CSTProjHandle), c_char_p,
+                                                 c_int, c_int, c_int,
+                                                 c_char_p, POINTER(c_int),
+                                                 POINTER(c_double)]
+        self._CST_Get3DHexResultInfo.restype = c_int
 
         #
         # CST_Get3DHexResultSize
         #
-        #self._CST_Get3DHexResultSize = self._resultReaderDLL.CST_Get3DHexResultSize
-
+        self._CST_Get3DHexResultSize = self._resultReaderDLL.CST_Get3DHexResultSize
+        self._CST_Get3DHexResultSize.argtypes = [POINTER(CSTProjHandle), 
+                                                 c_char_p, c_int, POINTER(c_int)]
+        self._CST_Get3DHexResultSize.restype = c_int
         #
         # CST_Get3DHexResult
         #
@@ -185,17 +192,25 @@ class ResultReaderDLL(object):
         # Hexahedral mesh (Only Regular Grids, no Subgrids, no TST)
         # (not yet implemented)
         # CST_GetHexMeshInfo
-        #self._CST_GetHexMeshInfo = self._resultReaderDLL.CST_GetHexMeshInfo
+        self._CST_GetHexMeshInfo = self._resultReaderDLL.CST_GetHexMeshInfo
+        self._CST_GetHexMeshInfo.argtypes = [POINTER(CSTProjHandle),
+                                             POINTER(c_int)]
+        self._CST_GetHexMeshInfo.restype = c_int
 
+        #
         # CST_GetHexMesh
-        #self._CST_GetHexMesh = self._resultReaderDLL.CST_GetHexMesh
+        #
+        self._CST_GetHexMesh = self._resultReaderDLL.CST_GetHexMesh
+        self._CST_GetHexMesh.argtypes = [POINTER(CSTProjHandle),
+                                         POINTER(c_double)]
+        self._CST_GetHexMesh.restype = c_int
 
         # ----------------------------------------------------------------------
-        # Hexahedral Material Matrix (not yet implemented)
+        # Hexahedral Materiall Matrix (not yet implemented)
         # matType may be 0: Meps
         #                1: Mmue
         #                2: Mkappa 
-        # CST_GetMaterailMatrixHexMesh
+        # CST_GetMaterialMatrixHexMesh
         #self._CST_GetMaterialMatrixHexMesh = self._resultReaderDLL.CST_GetMaterialMatrixHexMesh
 
         # ----------------------------------------------------------------------
@@ -424,15 +439,16 @@ class ResultReaderDLL(object):
         char_buffer_size = 2**25
         c_info_array_size = c_int(info_array_size)
         c_char_buffer_size = c_int(char_buffer_size)
-        c_info = c_char_p(char_buffer_size)
+        char_buffer = create_string_buffer("", char_buffer_size)
         i_info_p = (c_int * info_array_size)()
         d_info = c_double(0)
 
         c_result_number = c_int(result_number)
         print('before get 1d result info: ')
-        val = self._CST_Get1DResultInfo(self._projh, tree_path_name.encode(), c_int(result_number),
+        val = self._CST_Get1DResultInfo(self._projh, tree_path_name.encode(),
+                                        c_int(result_number),
                                         c_info_array_size, c_char_buffer_size, 
-                                        c_info, i_info_p, byref(d_info))
+                                        char_buffer, i_info_p, byref(d_info))
         print('After get 1d result info: ')
         print('Val: ', val)
         print('tree_path: ', tree_path_name)
@@ -440,6 +456,7 @@ class ResultReaderDLL(object):
         print('c_info_array_size: ', c_info_array_size.value)
         print('c_char_buffer_size: ', c_char_buffer_size.value)
         #print('d_info: ', d_info.value)
+        print(info_buffer.value)
         print('i_info_p: ', i_info_p[0])
 
         if val != 0:
@@ -540,3 +557,74 @@ class ResultReaderDLL(object):
         data_im = np.array(data_buffer[1::2], dtype=np.float64)
         return data_re + 1.0j*data_im
 
+    def _get_3d_hex_result_info(self, tree_path_name: str,
+                                 result_number: int):
+        """_get_3d_hex_result_info
+        Args:
+        Results:
+        Raises:
+        """
+        info_array_size = 2**8
+        char_buffer_size = 2**8
+        c_info_array_size = c_int(info_array_size)
+        c_char_buffer_size = c_int(char_buffer_size)
+        info_buffer = create_string_buffer(char_buffer_size)
+        i_info_p = (c_int * info_array_size)()
+        d_info = c_double(0)
+        
+        val = self._CST_Get3DHexResultInfo(self._projh,
+                                           tree_path_name.encode(),
+                                           c_int(result_number),
+                                           c_info_array_size,
+                                           c_char_buffer_size,
+                                           info_buffer, i_info_p, byref(d_info))
+
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_Get3DHexResultInfo returned error code: " + str(val)))
+        return i_info_p[:]
+
+    def _get_3d_hex_result_size(self, tree_path_name: str, 
+                                result_number: int) -> int:
+        """_get_3d_hex_result_size
+        Args:
+        Returns:
+            data_size : reported size fo the data 3D data.
+        Raises:
+        """
+        data_size = c_int(0)
+
+        val = self._CST_Get3DHexResultSize(self._projh,
+                                           tree_path_name.encode(),
+                                           c_int(result_number),
+                                           byref(data_size))
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_Get3DHexResultSize returned error code: " + str(val)))
+
+        return data_size.value
+
+    def _get_hex_mesh_info(self) -> tuple:
+        """_get_hex_mesh_info
+        Args:
+        Returns:
+        Raises:
+        """
+        nxyz = (c_int*3)()
+        val = self._CST_GetHexMeshInfo(self._projh, nxyz)
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetHexMeshInfo returned error code: " + str(val)))
+
+        return tuple(nxyz)
+
+    def _get_hex_mesh(self) -> tuple:
+        """_get_hex_mesh
+        Args:
+        Returns:
+        Raises:
+        """
+        (nx, ny, nz) = self._get_hex_mesh_info()
+        nxyz_lines = (c_double*(nx + ny + nz))()
+        val = self._CST_GetHexMesh(self._projh, nxyz_lines)
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetHexMesh returned error code: " + str(val)))
+
+        return ( nxyz_lines[0:nx], nxyz_lines[0:ny], nxyz_lines[0:nz] )
