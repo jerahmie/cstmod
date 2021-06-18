@@ -32,7 +32,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         self._cst_project_f_samples = 1001
         self.rrdll = ResultReaderDLL(self.cst_test_file_name, self._rrdll_version)
         self.rrdll.open_project()
-
+        
     def test_unittest_setup(self):
         """make sure the unit test frame work is properly initialized and 
         passes a known test.
@@ -192,14 +192,24 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
 
 
     def test_get_3d_hex_result_size(self):
-        """test the _get_3d_hex_result_size method
+        """test the _get_3d_hex_result_size class method
         """
         hex_result_3d_size = 188915328
         self.assertTrue( hasattr(self.rrdll, '_get_3d_hex_result_size') )
         results_3d = self.rrdll.item_names(r'2D/3D Results')
         for res3d in results_3d:
-            print(res3d)
             self.assertEqual(self.rrdll._get_3d_hex_result_size(res3d, 0),hex_result_3d_size)
+
+    def test_get_3d_hex_result(self):
+        """test the _get_3d_hex_result class method
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_3d_hex_result'))
+        results_3d = []
+        results_3d.append(self.rrdll.item_names(r'2D/3D Results')[0])
+        for res3d in results_3d:
+            result_3d_size = self.rrdll._get_3d_hex_result_size(res3d, 0) 
+            self.assertEqual(result_3d_size, 
+                             np.size(self.rrdll._get_3d_hex_result(res3d, 0)))
 
     def test_get_hex_mesh_info(self):
         """test the get_hex_mesh_info
@@ -217,14 +227,15 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         self.assertEqual(len(xdim),  nx)
         self.assertEqual(len(ydim),  ny)
         self.assertEqual(len(zdim),  nz)
-        fig, ax = plt.subplots(1,3)
-        ax[0].plot(xdim)
-        ax[1].plot(ydim)
-        ax[2].plot(zdim)
-        plt.savefig(fname='hex_mesh_info.png', dpi=None, facecolor='w', edgecolor='w',
-                orientation='portrait', papertype=None, format=None,
-                transparent=False, bbox_inches=None, pad_inches=0.1,
-                frameon=None, metadata=None)
+        #fig, ax = plt.subplots(1,3)
+        #ax[0].plot(xdim)
+        #ax[1].plot(ydim)
+        #ax[2].plot(zdim)
+        #plt.savefig(fname='hex_mesh_info.png', dpi=None, facecolor='w', edgecolor='w',
+        #        orientation='portrait', papertype=None, format=None,
+        #        transparent=False, bbox_inches=None, pad_inches=0.1,
+        #        frameon=None, metadata=None)
+
 
     def tearDown(self):
         self.rrdll.close_project()

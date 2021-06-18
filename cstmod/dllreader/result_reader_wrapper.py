@@ -8,7 +8,7 @@ import os
 import traceback
 from ctypes import *
 import numpy as np
-
+import h5py
 try:
     import win32com.client as win3
 except ImportError as error:
@@ -160,7 +160,10 @@ class ResultReaderDLL(object):
         #
         # CST_Get3DHexResult
         #
-        #self._CST_Get3DHexResult = self._resultReaderDLL.CST_Get3DHexResult
+        self._CST_Get3DHexResult = self._resultReaderDLL.CST_Get3DHexResult
+        self._CST_Get3DHexResult.argtypes = [POINTER(CSTProjHandle), c_char_p, 
+                                             c_int, POINTER(c_float)]
+        self._CST_Get3DHexResult.restype = c_int
         # ---------------------------------------------------------------------
         # Far Fields (not implemented)
 
@@ -439,7 +442,7 @@ class ResultReaderDLL(object):
         char_buffer_size = 2**25
         c_info_array_size = c_int(info_array_size)
         c_char_buffer_size = c_int(char_buffer_size)
-        char_buffer = create_string_buffer("", char_buffer_size)
+        char_buffer = create_string_buffer(char_buffer_size)
         i_info_p = (c_int * info_array_size)()
         d_info = c_double(0)
 
@@ -449,15 +452,6 @@ class ResultReaderDLL(object):
                                         c_int(result_number),
                                         c_info_array_size, c_char_buffer_size, 
                                         char_buffer, i_info_p, byref(d_info))
-        print('After get 1d result info: ')
-        print('Val: ', val)
-        print('tree_path: ', tree_path_name)
-        #print('c_info: ', type(c_info))
-        print('c_info_array_size: ', c_info_array_size.value)
-        print('c_char_buffer_size: ', c_char_buffer_size.value)
-        #print('d_info: ', d_info.value)
-        print(info_buffer.value)
-        print('i_info_p: ', i_info_p[0])
 
         if val != 0:
             raise(Exception("ResultReaderDLL::CST_Get1DResultInfo returned error code: " + str(val)))
@@ -561,8 +555,13 @@ class ResultReaderDLL(object):
                                  result_number: int):
         """_get_3d_hex_result_info
         Args:
+            tree_path_name
+            result_number
         Results:
+            None
         Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
         """
         info_array_size = 2**8
         char_buffer_size = 2**8
@@ -602,11 +601,40 @@ class ResultReaderDLL(object):
 
         return data_size.value
 
+    def _get_3d_hex_result(self, tree_path_name, result_number):
+        """ _get_3d_hex_result
+            Returns a 3d result on a hexahedral mesh.
+        Args:
+            tree_path_name
+            result_number
+        Returns:
+            ndarray - Numpy 3D ndarray containing field values
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+            4 -
+        """
+        data_size = self._get_3d_hex_result_size(tree_path_name, result_number)
+        data_3d = (c_float*data_size)()
+        print(tree_path_name)
+        print(tree_path_name.encode())
+        val = self._CST_Get3DHexResult(self._projh,
+                                       tree_path_name.encode(),
+                                       c_int(result_number), data_3d)
+        
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_Get3DHexResult returned error code: " + str(val)))
+        return np.array(data_3d, dtype=np.float64)
+
     def _get_hex_mesh_info(self) -> tuple:
         """_get_hex_mesh_info
         Args:
+            None
         Returns:
+            tuple - a tuple containing the cartesian dimensions of the mesh
         Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
         """
         nxyz = (c_int*3)()
         val = self._CST_GetHexMeshInfo(self._projh, nxyz)
@@ -618,7 +646,9 @@ class ResultReaderDLL(object):
     def _get_hex_mesh(self) -> tuple:
         """_get_hex_mesh
         Args:
+            None
         Returns:
+            tuple - tuple containing the grid mesh (xdim, ydim, zdim)
         Raises:
         """
         (nx, ny, nz) = self._get_hex_mesh_info()
@@ -628,3 +658,4 @@ class ResultReaderDLL(object):
             raise(Exception("ResultReaderDLL::CST_GetHexMesh returned error code: " + str(val)))
 
         return ( nxyz_lines[0:nx], nxyz_lines[0:ny], nxyz_lines[0:nz] )
+
