@@ -19,13 +19,15 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cst_test_file_name = os.path.join(os.path.abspath(os.path.join(__file__,'..','..','test_data','Simple_Cosim','Simple_Cosim.cst')))
+        cst_test_file_name = os.path.join(os.path.abspath(os.path.join(__file__,'..','..','test_data','Simple_Cosim','Simple_Cosim_1.cst')))
         #cst_test_file_name = os.path.join("D:\\", 'CST_Projects','Simple_Cosim.cst')
         cls.cst_test_file_name = None
         if os.path.exists(cst_test_file_name):
             cls.cst_test_file_name = cst_test_file_name
 
     def setUp(self):
+        # save figures?
+        self.save_figures = False
         # choose version of CST
         self._rrdll_version = '2020'
         # number of frequency samples - set in Simulation Setup 
@@ -85,11 +87,18 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
             hasattr_result = hasattr(results, 'item_names' )
             one_d_results_balance = results.item_names(r'1D Results\Balance')
         self.assertTrue(hasattr_result)
-        self.assertEqual(3, len(one_d_results_balance))
+        self.assertEqual(10, len(one_d_results_balance))
         self.assertEqual(one_d_results_balance,
                          [r'1D Results\Balance\Balance [1]',
                           r'1D Results\Balance\Balance [2]',
-                          r'1D Results\Balance\Balance [3]'])
+                          r'1D Results\Balance\Balance [3]',
+                          r'1D Results\Balance\Balance [4]',
+                          r'1D Results\Balance\Balance [5]',
+                          r'1D Results\Balance\unnorm\1',
+                          r'1D Results\Balance\unnorm\2',
+                          r'1D Results\Balance\unnorm\3',
+                          r'1D Results\Balance\unnorm\4',
+                          r'1D Results\Balance\unnorm\5'])
 
     def test_get_one_d_results(self):
         """More tests for 1D Results
@@ -99,7 +108,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         #print(one_d_results)
         for res in one_d_results:
             char_sum += len(res)
-        self.assertEqual(149, len(self.rrdll.item_names('1D Results')))
+        self.assertEqual(312, len(self.rrdll.item_names('1D Results')))
 
     def test_get_number_of_results(self):
         """Tests for CST_GetNumberOfResults
@@ -174,14 +183,15 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
             freq_data = self.rrdll._get_1d_real_data_abszissa(res1, result_number)
             comp_data = self.rrdll._get_1d_2comp_data_ordinate(res1, result_number)
 
-            #self.assertEqual(data_length, len(comp_data))
+            self.assertEqual(data_length, len(comp_data))
             # save the figures to check
-            #fig_name = res1.replace(' ', '_').replace('\\','_').replace(',','_').replace('-','_')+'.png'
-            #plt.plot(freq_data, 20*np.log10(np.abs(comp_data)))
-            #plt.savefig(fname=fig_name, dpi=None, facecolor='w', edgecolor='w',
-            #    orientation='portrait', papertype=None, format=None,
-            #    transparent=False, bbox_inches=None, pad_inches=0.1,
-            #    frameon=None, metadata=None)
+            if self.save_figures:
+                fig_name = res1.replace(' ', '_').replace('\\','_').replace(',','_').replace('-','_')+'.png'
+                plt.plot(freq_data, 20*np.log10(np.abs(comp_data)))
+                plt.savefig(fname=fig_name, dpi=None, facecolor='w', edgecolor='w',
+                    orientation='portrait', papertype=None, format=None,
+                    transparent=False, bbox_inches=None, pad_inches=0.1,
+                    frameon=None, metadata=None)
     
     @unittest.skip("")
     def test_get_3d_hex_result_info(self):
@@ -194,7 +204,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     def test_get_3d_hex_result_size(self):
         """test the _get_3d_hex_result_size class method
         """
-        hex_result_3d_size = 188915328
+        hex_result_3d_size = 38544000
         self.assertTrue( hasattr(self.rrdll, '_get_3d_hex_result_size') )
         results_3d = self.rrdll.item_names(r'2D/3D Results')
         for res3d in results_3d:
@@ -214,7 +224,7 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
     def test_get_hex_mesh_info(self):
         """test the get_hex_mesh_info
         """
-        mesh_size = (378, 274, 304)
+        mesh_size = (250,146,176)
         self.assertTrue( hasattr(self.rrdll, '_get_hex_mesh_info') )
         self.assertEqual(mesh_size, self.rrdll._get_hex_mesh_info())
 
@@ -227,15 +237,27 @@ class TestCSTResultReaderWrapper(unittest.TestCase):
         self.assertEqual(len(xdim),  nx)
         self.assertEqual(len(ydim),  ny)
         self.assertEqual(len(zdim),  nz)
-        #fig, ax = plt.subplots(1,3)
-        #ax[0].plot(xdim)
-        #ax[1].plot(ydim)
-        #ax[2].plot(zdim)
-        #plt.savefig(fname='hex_mesh_info.png', dpi=None, facecolor='w', edgecolor='w',
-        #        orientation='portrait', papertype=None, format=None,
-        #        transparent=False, bbox_inches=None, pad_inches=0.1,
-        #        frameon=None, metadata=None)
+        if self.save_figures:
+            fig, ax = plt.subplots(1,3)
+            ax[0].plot(xdim)
+            ax[1].plot(ydim)
+            ax[2].plot(zdim)
+            plt.savefig(fname='hex_mesh_info.png', dpi=None, facecolor='w', edgecolor='w',
+                        orientation='portrait', papertype=None, format=None,
+                        transparent=False, bbox_inches=None, pad_inches=0.1,
+                        frameon=None, metadata=None)
 
+    def test_get_material_matrix_hex_mesh(self):
+        """Tests for the _get_material_martrix_hex_mesh class member function.
+        """
+        self.assertTrue( hasattr(self.rrdll, '_get_material_matrix_hex_mesh') )
+        (nx, ny, nz) = self.rrdll._get_hex_mesh_info()
+        hex_materials_eps = self.rrdll._get_material_matrix_hex_mesh(0)
+        hex_materials_mue = self.rrdll._get_material_matrix_hex_mesh(1)
+        hex_materials_kappa = self.rrdll._get_material_matrix_hex_mesh(3)
+        self.assertEqual(np.shape(hex_materials_eps), ((3*nx*ny*nz),))
+        self.assertEqual(np.shape(hex_materials_mue), ((3*nx*ny*nz),))
+        self.assertEqual(np.shape(hex_materials_kappa), ((3*nx*ny*nz),))
 
     def tearDown(self):
         self.rrdll.close_project()

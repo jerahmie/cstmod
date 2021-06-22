@@ -214,7 +214,10 @@ class ResultReaderDLL(object):
         #                1: Mmue
         #                2: Mkappa 
         # CST_GetMaterialMatrixHexMesh
-        #self._CST_GetMaterialMatrixHexMesh = self._resultReaderDLL.CST_GetMaterialMatrixHexMesh
+        self._CST_GetMaterialMatrixHexMesh = self._resultReaderDLL.CST_GetMaterialMatrixHexMesh
+        self._CST_GetMaterialMatrixHexMesh.argtypes = [POINTER(CSTProjHandle),
+                                                       c_int, POINTER(c_float)]
+        self._CST_GetMaterialMatrixHexMesh.restype = c_int
 
         # ----------------------------------------------------------------------
         # Bix-file Information from Header (not yet implemented)
@@ -601,7 +604,8 @@ class ResultReaderDLL(object):
 
         return data_size.value
 
-    def _get_3d_hex_result(self, tree_path_name, result_number):
+    def _get_3d_hex_result(self, tree_path_name: str,
+                           result_number: int) -> np.ndarray:
         """ _get_3d_hex_result
             Returns a 3d result on a hexahedral mesh.
         Args:
@@ -624,7 +628,7 @@ class ResultReaderDLL(object):
         
         if val != 0:
             raise(Exception("ResultReaderDLL::CST_Get3DHexResult returned error code: " + str(val)))
-        return np.array(data_3d, dtype=np.float64)
+        return np.array(data_3d, dtype=np.float32)
 
     def _get_hex_mesh_info(self) -> tuple:
         """_get_hex_mesh_info
@@ -657,5 +661,32 @@ class ResultReaderDLL(object):
         if val != 0:
             raise(Exception("ResultReaderDLL::CST_GetHexMesh returned error code: " + str(val)))
 
-        return ( nxyz_lines[0:nx], nxyz_lines[0:ny], nxyz_lines[0:nz] )
+        return ( nxyz_lines[:nx], nxyz_lines[nx:nx+ny], nxyz_lines[nx+ny:] )  
+        
 
+    def _get_material_matrix_hex_mesh(self, mat_type: int) -> np.ndarray:
+        """_get_material_matrix_hex_mesh:
+            Get the hex mesh material properties
+        Args:
+            mat_type: Integer representing the material type: 0: Meps
+                                                              1: Mmue
+                                                              2: Mkappa
+                                                              3: Conductivity(?)
+
+        Returns:
+            numpy ndarray: Material mesh properties array (float32)
+                           size is 3*nx*ny*nz
+        Raises:
+            Raises exception when return value from ResultReaderDLL is not 0
+            0 - Success
+            2 - returned for Mkappa for Simple_Cosim
+            7 - Invalid material type requested
+        """
+        (nx, ny, nz) = self._get_hex_mesh_info()
+        hex_material_properties = (c_float * (3*nx * ny * nz))()
+        val = self._CST_GetMaterialMatrixHexMesh(self._projh, c_int(mat_type),
+                                                 hex_material_properties)
+        if val != 0:
+            raise(Exception("ResultReaderDLL::CST_GetHexMesh returned error code: " + str(val)))
+        
+        return np.array(hex_material_properties, dtype=np.float32)
