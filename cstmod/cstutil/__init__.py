@@ -11,6 +11,7 @@ if sys.platform == 'win32':
 from .cst_file_utils import pad_square_bracket_string, \
                             find_cst_files, \
                             sort_cst_results_export, \
-                            sort_cst_internal_results
+                            sort_cst_internal_results, \
+                            sort_by_trailing_number
 
 
