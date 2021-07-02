@@ -83,4 +83,4 @@ def sort_by_trailing_number(unsorted_files):
     Returns: 
         list of sorted files
     """
-    return sorted(unsorted_files, key=lambda fl: int(re.search(r'([\d]+$)',fl).group(1)))
+    return sorted(unsorted_files, key=lambda fl: int(re.search(r'([\d]+).*$',os.path.basename(fl)).group(1)))
