@@ -73,9 +73,6 @@ def power_from_ports(result_path, frequency, normalization=(1.0/np.sqrt(2.0))):
 
     fd_voltages = data_from_ports(fd_voltages_path, frequency)
     fd_currents = data_from_ports(fd_currents_path, frequency)
-    print(fd_voltages)
-    print(np.real(np.multiply(fd_voltages, np.conj(fd_currents))))
-    normalized_power = normalization*np.real(np.multiply(fd_voltages, np.conj(fd_currents)))
+    normalized_power = normalization*np.multiply(fd_voltages, np.conj(fd_currents))
 
     return normalized_power
-

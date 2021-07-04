@@ -27,7 +27,7 @@ class FieldReaderCST2019(FieldReaderABC):
     """
     # class variables
     cst_3d_field_types = {'e-field':'E-Field', 'h-field':'H-Field'}
-    cst_merge_types = ['AC', 'pw', 'Trans', 'TxCh']
+    cst_merge_types = ['AC', 'pw', 'Trans', 'TxCh','']
 
     def __init__(self):
         self._field_file_list = []
@@ -176,7 +176,7 @@ class FieldReaderCST2019(FieldReaderABC):
             f_padded_right_bracket.append("[]]".join(temp))
 
         return "[[]".join(f_padded_right_bracket)
-    
+
     def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
                      merge_type = 'AC', rotating_frame = False):
         """Create vopgen output files for e-field and b-field, masks, etc.
@@ -219,3 +219,31 @@ class FieldReaderCST2019(FieldReaderABC):
     @normalization.setter
     def normalization(self, new_normalization):
         self._normalization = np.array(new_normalization)
+
+    @property
+    def complex_fields(self):
+        """ 
+        Returns: ndarray of complex fields
+        """
+        return self._complex_fields
+    
+    @property
+    def xdim(self):
+        """
+        Returns: X-dimensions
+        """
+        return self._xdim
+
+    @property
+    def ydim(self):
+        """
+        Returns: Y-dimensions
+        """
+        return self._ydim
+    
+    @property
+    def zdim(self):
+        """
+        Returns: Z-dimensions
+        """
+        return self._zdim
