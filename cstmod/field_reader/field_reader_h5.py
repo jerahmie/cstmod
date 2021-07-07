@@ -13,6 +13,7 @@ from cstmod.field_reader import FieldReaderABC
 
 # class variables
 cst_3d_field_types = [r'e-field', r'h-field']
+cst_3d_field_map = {'e-field':'E-Field', 'h-field':'H-Field'}
 
 def extract_field_type(file_name):
     """
@@ -124,3 +125,15 @@ class FieldReaderH5(FieldReaderABC):
         Returns: field type
         """
         return self._field_type
+
+    @property
+    def fields_dict(self):
+        """
+        Returns: a dictionary of field_types and 
+        """
+        fields_dict = dict()
+        fields_dict[cst_3d_field_map[self._field_type]] = self._complex_fields
+        fields_dict[r'XDim'] = self._xdim
+        fields_dict[r'YDim'] = self._ydim
+        fields_dict[r'ZDim'] = self._zdim
+        return fields_dict
