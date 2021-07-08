@@ -24,6 +24,29 @@ def data_1d_at_frequency(file_name, frequency):
 
     return(data[freq_ind])
 
+def find_missing_data(data, ndata, pattern):
+    """
+    Args: 
+        data: list of file paths to data
+        ndata: anticipated number of data points
+        pattern: regular expression pattern to match
+    Returns:
+        list of files missing from list
+    Raises: 
+        None
+    """
+    data_set = set([os.path.basename(d) for d in data])
+    prog = re.compile(pattern)
+    # size of data list
+    missing_data = []
+    pfix = pattern.split("*")
+    for i in range(ndata-1):
+        test_str = str(i+1).join(pfix)
+        if not test_str in data_set:
+            missing_data.append(test_str)
+
+    return missing_data
+
 def data_from_ports(result_path, frequency):
     """
     Args:
@@ -46,7 +69,7 @@ def data_from_ports(result_path, frequency):
     last_port_number = int(re.search(r'([\d]+).*$',os.path.basename(result_ports[-1])).group(1))
     
     if len(result_ports) != last_port_number:
-        raise Exception("Port numbering is inconsistent and/or port values are missing."+str(result_ports))
+        raise Exception("Port numbering is inconsistent and/or port values are missing."+str(find_missing_data(result_ports, len(result_ports), 'P*.txt')))
 
     results = np.empty((len(result_ports),2))
     for i, port in enumerate(result_ports):

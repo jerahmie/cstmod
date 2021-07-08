@@ -69,6 +69,21 @@ class Test(unittest.TestCase):
 
         self.assertTrue(functools.reduce(lambda x, y: x and y, map(lambda p, q: p == q, sorted_ac_combine_dirs, sort_by_trailing_number(unsorted_ac_combine_dirs)),True))
 
+    def test_find_missing_data(self):
+        """Test utility function to find items missing in sequence.
+        """
+        sorted_port_dirs = []
+        with tempfile.TemporaryDirectory() as tempdir:
+            for i in range(1,228):
+                if i%112 != 0:
+                    open(os.path.join(tempdir,'P'+str(i)+'.txt'),'a').close()
+            sorted_port_dirs = sort_by_trailing_number([os.path.join(tempdir, d) for d in os.listdir(tempdir)])
+        print(sorted_port_dirs)
+        print(len(sorted_port_dirs))
+        missing_files = find_missing_data(sorted_port_dirs, 228, "P*.txt")
+        print(missing_files)
+        self.assertEqual(len(missing_files),2)
+
     def test_sorting_port_data(self):
         """Check that list of Port
         """
