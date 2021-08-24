@@ -99,7 +99,7 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 300  # Frequency of interest
+    freq0 = 447  # Frequency of interest
     nchannels = 16
     generate_mask = True
 
@@ -113,15 +113,15 @@ if "__main__" == __name__:
     #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_2')
     #project_path = os.path.join(base_mount, 'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
     project_path = os.path.join(base_mount, '16Tx_7T_LB Phantom_40mm shield_1_4_1')
-    #accepted_power_file_pattern = os.path.join(project_path, 'Export',
-    #                                           'Power_Excitation*_Power Accepted (DS).txt')
-    #accepted_power_narray = GenericDataNArray()
-    #accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
-    #f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
-    #accepted_power_at_freq = np.abs(accepted_power_at_freq)
+    accepted_power_file_pattern = os.path.join(project_path, 'Export',
+                                               'Power_Excitation*_Power Accepted (DS).txt')
+    accepted_power_narray = GenericDataNArray()
+    accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+    f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
+    accepted_power_at_freq = np.abs(accepted_power_at_freq)
     #print("accepted power: ", accepted_power_at_freq)
-    #normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
-    normalization = [1.0 for i in range(nchannels)]
+    normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
+    #normalization = [1.0 for i in range(nchannels)]
     #print(normalization)
     
     vopgen_dir = os.path.join(project_path, 'Export', '3d', 'Vopgen')

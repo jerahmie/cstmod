@@ -11,6 +11,7 @@ export to file: sarmask_aligned.mat
 """
 import numpy as np
 import hdf5storage
+import scipy.io as spio
 #from rfutils import xmat
 #from cstmod.field_reader import FieldReaderCST2019
 
@@ -131,5 +132,5 @@ class SARMaskCST2019(object):
         export_dict[u'YDim'] = self._ydim
         export_dict[u'ZDim'] = self._zdim
         export_dict[u'sarmask_new'] = self._sarmask
-        hdf5storage.savemat(filename, export_dict, oned_as = 'column')
+        spio.savemat(filename, export_dict, oned_as = 'column')
 
