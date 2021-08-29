@@ -40,6 +40,7 @@ if __name__ == "__main__":
     materials_file = os.path.join(data_path, r'Duke_34y_V5_2mm_0_Duke_34y_V5_2mm.vmat')
     conduction_current_file = os.path.join(data_path, r'current (f=447) [AC1].h5')
     efield_file = os.path.join(data_path, r'e-field (f=447) [AC1].h5')
+    mask_file = os.path.join(data_path, )
     conduction_currents = ResultReader3D(conduction_current_file, 'current').fields3d
 
     rr3d_efields = ResultReader3D(efield_file, 'e-field')
@@ -73,7 +74,19 @@ if __name__ == "__main__":
     propmap_dict['ZDim'] = zdim
     propmap_dict['condMap'] = kappa
     propmap_dict['mdenMap'] = rho
+    spio.savemat('propmap.mat', propmap_dict, oned_as='column')
 
-    plt.pcolormesh(kappa[:,:,200,0])
-    plt.colorbar()
-    plt.show()
+    sarmask_dict = dict()
+    sarmask_dict['XDim'] = xdim
+    sarmask_dict['YDim'] = ydim
+    sarmask_dict['ZDim'] = zdim
+    sarmask = np.zeros((len(xdim), len(ydim), len(zdim)), dtype=np.int)
+    sarmask_ind = np.where((kappa[:,:,:,0] > 0.01) & (kappa[:,:,:,0] < 10.0))
+    sarmask[sarmask_ind] = 1
+    sarmask_dict['sarmask_new'] = sarmask
+    spio.savemat('sarmask_aligned.mat', sarmask_dict, oned_as='column')
+
+
+    #plt.pcolormesh(kappa[:,:,200,0])
+    #plt.colorbar()
+    #plt.show()

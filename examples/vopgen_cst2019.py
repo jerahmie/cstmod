@@ -91,7 +91,7 @@ def load_current_data(field_data_file):
     jfield_data = np.zeros((np.shape(jxre)[0],
                             np.shape(jxre)[1],
                             np.shape(jxre)[2], 3),
-                            dtype = np.complex)
+                            dtype = np.complex128)
     jfield_data[:,:,:,0] = jxre + 1.0j*jxim
     jfield_data[:,:,:,1] = jyre + 1.0j*jyim
     jfield_data[:,:,:,2] = jzre + 1.0j*jzim
@@ -99,36 +99,37 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 447  # Frequency of interest
+    freq0 = 447  # Frequency of interest, MHz
     nchannels = 16
     generate_mask = True
 
     print("vopgen cst2019 tests...")
-    if 'win32' == sys.platform:
-        base_mount = os.path.join('F:', os.sep)
-    else:
-        base_mount = os.path.join('/export', 'raid1', 'jerahmie-data')
+    if sys.platform == 'win32':
+        base_mount = os.path.join(r'D:', os.sep, r'Temp_CST')
+    elif sys.platform == 'linux':
+        base_mount = os.path.join('/mnt', 'Data', 'Temp_CST')
     #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds')
     #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds_hard_ground')
     #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_2')
     #project_path = os.path.join(base_mount, 'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
-    project_path = os.path.join(base_mount, '16Tx_7T_LB Phantom_40mm shield_1_4_1')
+    #project_path = os.path.join(base_mount, '16Tx_7T_LB Phantom_40mm shield_1_4_1')
+    project_path = os.path.join(base_mount, 'KU_Ten_32_FDA_21Jul2021_4_6')
     accepted_power_file_pattern = os.path.join(project_path, 'Export',
                                                'Power_Excitation*_Power Accepted (DS).txt')
     accepted_power_narray = GenericDataNArray()
     accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
     f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
     accepted_power_at_freq = np.abs(accepted_power_at_freq)
-    #print("accepted power: ", accepted_power_at_freq)
+    print("accepted power: ", accepted_power_at_freq)
     normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
     #normalization = [1.0 for i in range(nchannels)]
-    #print(normalization)
-    
+    print(normalization)
+    sys.exit()
     vopgen_dir = os.path.join(project_path, 'Export', '3d', 'Vopgen')
     if not os.path.exists(vopgen_dir):
         os.mkdir(vopgen_dir)
 
-    export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
+    #export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
     efMapArrayN = efMapArrayN_dict['efMapArrayN']
@@ -141,6 +142,7 @@ if "__main__" == __name__:
     if generate_mask:
         if os.path.exists(current_density_file):
             # Calculate mask from current density and E-field
+            print('Calculating SAR mask from current density and E-fields.')
             current_density = load_current_data(current_density_file)
 
             ef_shape = np.shape(efMapArrayN)
@@ -154,9 +156,10 @@ if "__main__" == __name__:
                                                     current_density)
         else:
             # Calculate mask from E- and H- fields
+            print('Calculating SAR mask from H- and E-fields.')
             (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
-            ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
-            hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+            ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex128)
+            hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex128)
 
             phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
             for channel in range(nchannels):

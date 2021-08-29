@@ -26,8 +26,8 @@ class SARMaskCST2019(object):
         self._zdim = zdim
         self._sigma = sigma
         self._epsr = epsr
-        self._sigma_min = 0.1 
-        self._sigma_max = 1.0 # S/m
+        self._sigma_min = 0.01 
+        self._sigma_max = 10.0 # S/m
         self._epsr_min = 2.0
         self._epsr_max = 100.0 # S/m
         self._sarmask = None
@@ -111,7 +111,8 @@ class SARMaskCST2019(object):
                                  dtype = np.int)
         print("epsr_mask_ind: ", epsr_mask_ind)
         epsr_mask[epsr_mask_ind] = 1
-        self._sarmask = np.multiply(epsr_mask, sigma_mask)
+        #self._sarmask = np.multiply(epsr_mask, sigma_mask)
+        self._sarmask = sigma_mask
 
         
     @property

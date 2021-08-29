@@ -3,6 +3,7 @@
 import os
 import sys
 import csv
+import re
 if 'win32' == sys.platform:
     import fnmatch
 else:
@@ -14,7 +15,6 @@ try:
 except:
     print("Field reader requires Numpy and Scipy.  Ensure package numpy,scipy is installed.")
 from cstmod.field_reader import DataNArrayABC
-
 
 class GenericDataNArray(DataNArrayABC):
     """Class to manage n-channels of generic 1-D ascii data exported from CST.
@@ -50,7 +50,9 @@ class GenericDataNArray(DataNArrayABC):
         if 0 == len(file_list):
             raise KeyError("File pattern not found: " + file_name_pattern)
 
-        return file_list
+        sorted_file_list = sorted(file_list, key=lambda fl: int(re.search(r'^.*AC([0-9]*).*.txt$',fl).group(1)))
+
+        return sorted_file_list
 
     def _pad_bracket_string(self, string_with_brackets):
         """Pad square bracket characters for pattern matching with square brackets.
@@ -67,7 +69,7 @@ class GenericDataNArray(DataNArrayABC):
         """Load data corresponding to filename pattern.
         """
         file_list = self._process_file_list(filename_pattern)
-        
+        print('[DEBUG load_data_one_d] ', file_list)
         if len(file_list) == 0:
             raise KeyError("File list is empty. File pattern: ", file_pattern)
         else:

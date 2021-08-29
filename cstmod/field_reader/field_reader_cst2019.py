@@ -143,13 +143,11 @@ class FieldReaderCST2019(FieldReaderABC):
             print("file_base pattern: ", file_base_pattern)
             print(fnmatch.filter(os.listdir(os.path.dirname(file_name_pattern)),self._pad_bracket_string(file_base_pattern)))
             file_list = [os.path.join(self._source_dir, file) for file in fnmatch.filter(os.listdir(os.path.dirname(file_name_pattern)),file_base_pattern)]
-            print("file_list: ", file_list)
         else:
             print('[DEBUG] field_reader_cst2019 process_file_list ', file_name_pattern)
             glob_string = self._pad_bracket_string(file_name_pattern)
             print('glob_string: ', glob_string)
             file_list = glob.glob(glob_string)
-            print('file_list: ', file_list)
 
         if 0 == len(file_list):
             raise KeyError("File pattern not found: " + file_name_pattern )
