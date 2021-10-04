@@ -77,9 +77,9 @@ class ResultReader3D(object):
             raise FileNotFoundError
         with h5py.File(self._file_name,'r') as dataf:
             try:
-                xdim = self._dim_scale * dataf['Mesh line x'][()]
-                ydim = self._dim_scale * dataf['Mesh line y'][()]
-                zdim = self._dim_scale * dataf['Mesh line z'][()]
+                self._xdim = self._dim_scale * dataf['Mesh line x'][()]
+                self._ydim = self._dim_scale * dataf['Mesh line y'][()]
+                self._zdim = self._dim_scale * dataf['Mesh line z'][()]
                 self._fields3d = np.transpose(dataf[self.cst_3d_field_types[self._field_type.lower()]],(2,1,0))
             except(KeyError) as ex:
                 print("A KeyError exception was caught.  It is likely that " 
