@@ -20,12 +20,14 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
     efields_fr = FieldReaderCST2019()
     efields_fr.normalization = normalization
     print('e-field normalization: ', efields_fr.normalization)
+    print('[DEBUG] Saving',  os.path.join(export_dir, 'efMapArrayN.mat'))
     efields_fr.write_vopgen(freq0, export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
                             export_type='e-field', merge_type='AC',
                             rotating_frame=False)
     hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
+    print('[DEBUG] Saving ', os.path.join(export_dir, 'bfMapArrayN.mat'))
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
                             export_type='h-field', merge_type='AC',
@@ -103,30 +105,26 @@ if "__main__" == __name__:
     nchannels = 1
     generate_mask = True
 
-    if sys.platform == 'win32':
-        base_mount = os.path.join(r'D:', os.sep, r'CST_Projects', r'Garwood', r'Loop_1r5T_64MHz')
-    elif sys.platform == 'linux':
-        base_mount = os.path.join('/mnt', 'Data', 'Temp_CST')
-    
-    project_path = os.path.join(base_mount, 'Loop_1r5T_64MHz')
-
+    print("vopgen cst2019 tests...")
+    if 'win32' == sys.platform:
+        base_mount = os.path.join('F:', os.sep)
+    else:
+        base_mount = os.path.join('/mnt', 'e')
+    #project_path = os.path.join(base_mount, 'CST_Backup', \
+    #                           '16Tx_7T_LB_Phantom_40mm_shield_MRT_PVP_agar_gel_E')
+    project_path = os.path.join(base_mount, 'CST_Results', \
+                   'STTR_Tx_Lightbulb')
     accepted_power_file_pattern = os.path.join(project_path, 'Export',
                                                'Power_Excitation*_Power Accepted (DS).txt')
-    #accepted_power_file_pattern = os.path.join(project_path,'Export','Power','Excitation[AC]',)
-
     accepted_power_narray = GenericDataNArray()
     accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
     f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
     accepted_power_at_freq = np.abs(accepted_power_at_freq)
     print("accepted power: ", accepted_power_at_freq)
-    #normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
-    normalization = [1.0 for i in range(nchannels)]
+    normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
     print(normalization)
     
-    vopgen_dir = os.path.join(project_path, 'Export', '3d', 'Vopgen2')
-    if not os.path.exists(vopgen_dir):
-        os.mkdir(vopgen_dir)
-
+    vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
     export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))

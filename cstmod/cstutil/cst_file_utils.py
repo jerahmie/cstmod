@@ -9,9 +9,7 @@ if sys.platform == 'win32':
 elif sys.platform == 'linux':
     import glob
 else:
-    raise Exception("Unable to process files due to unsupported system: ", 
-        sys.platform)
-
+    import glob  # assuming a unix-like system.
 
 def pad_square_bracket_string(string_with_brackets):
     """ Pad the square brackets in a string for pattern matching with square brackets.
@@ -66,6 +64,8 @@ def sort_cst_results_export(unsorted_files, sorting_prefix = ""):
     Args:
         unsorted_files: unsorted list of filenames
         sorting_prefix: prefix with bracketed results: 
+    Returns:
+        list of sorted files.
     """
     return sorted(unsorted_files, key=lambda fl: int(re.search(r'\['+ sorting_prefix + r'([\d]+)\]',fl).group(1)))
 
@@ -75,3 +75,12 @@ def sort_cst_internal_results(unsorted_files):
     """
     sorted_files = sorted(unsorted_files, key=lambda fl: int(re.search(r'^[0-9a-zA-Z:\\_\-\(\) =]*_([0-9]*),[0-9]*(.m3d|.m3t|_m3d.rex|_m3d_sct.rex)$',fl).group(1)))
     return sorted_files
+
+def sort_by_trailing_number(unsorted_files):
+    """Takes a list of files and sorts by the trailing number.
+    Args:
+        unsorted_files: list of unsorted file paths
+    Returns: 
+        list of sorted files
+    """
+    return sorted(unsorted_files, key=lambda fl: int(re.search(r'([\d]+).*$',os.path.basename(fl)).group(1)))

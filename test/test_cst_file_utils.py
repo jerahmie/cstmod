@@ -3,7 +3,10 @@
 """
 
 import os
+import tempfile
 from cstmod.cstutil import *
+import functools
+
 
 cstmod_test_data_dir = os.path.normpath(os.path.join(os.path.realpath(__file__),
                                               r'..', r'..', r'test_data'))
@@ -55,3 +58,21 @@ def pretty_print_files(file_list):
     for file in file_list:
         print(file_count, file)
         file_count += 1
+
+def test_sort_by_trailing_number():
+    """Test sort of many files by trailing number
+    e.g. /path/to/results/AC* get sorted by trailing number in numerical order
+    such that AC1 is followed by AC2 not AC10, etc
+    """
+    sorted_files = []
+    with tempfile.TemporaryDirectory() as tempdir:
+        for i in range(15):
+            path = os.path.join(tempdir,r'AC'+str(i+1))
+            os.mkdir(path)
+            sorted_files.append(path)
+        
+        unsorted_files = [os.path.join(tempdir, ac) for ac in os.listdir(tempdir)]
+        assert os.path.exists(os.path.join(tempdir,r'AC1'))
+        assert os.path.exists(os.path.join(tempdir,r'AC15'))
+
+        assert functools.reduce(lambda x, y: x and y, map(lambda p, q: p == q, sorted_files, sort_by_trailing_number(unsorted_files)),True)

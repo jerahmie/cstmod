@@ -29,7 +29,7 @@ class FieldReaderCST2019(FieldReaderABC):
     """
     # class variables
     cst_3d_field_types = {'e-field':'E-Field', 'h-field':'H-Field'}
-    cst_merge_types = ['AC', 'pw', 'Trans', 'TxCh']
+    cst_merge_types = ['AC', 'pw', 'Trans', 'TxCh','']
 
     def __init__(self):
         self._field_file_list = []
@@ -176,7 +176,7 @@ class FieldReaderCST2019(FieldReaderABC):
             f_padded_right_bracket.append("[]]".join(temp))
 
         return "[[]".join(f_padded_right_bracket)
-    
+
     def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
                      merge_type = 'AC', rotating_frame = False):
         """Create vopgen output files for e-field and b-field, masks, etc.
@@ -192,18 +192,23 @@ class FieldReaderCST2019(FieldReaderABC):
             print("trying to create vopgen directory")
             os.makedirs(output_dir)
 
-        export_type = self.cst_3d_field_types[export_type]
+        #export_type = self.cst_3d_field_types[export_type]
         self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
         export_dict = dict()
         export_dict[u'XDim'] = self._xdim
         export_dict[u'YDim'] = self._ydim
         export_dict[u'ZDim'] = self._zdim
-        if 'E-Field' == export_type:
+        print('[field_reader_cst2019] export_type', export_type)
+        if 'e-field' == export_type:
+            print('[field_reader_cst2019] ', output_file)
             export_dict[u'efMapArrayN'] = self._complex_fields
             hdf5storage.savemat(output_file, export_dict, oned_as='column')
-        elif 'H-Field' == export_type:
+        elif 'h-field' == export_type:
+            print('[field_reader_cst2019] ', output_file)
             export_dict[u'bfMapArrayN'] = mu_0 * self._complex_fields
             hdf5storage.savemat(output_file, export_dict, oned_as='column')
+        else:
+            raise Exception('Invalid field type: ', export_type)
 
     @property
     def normalization(self):
@@ -214,3 +219,31 @@ class FieldReaderCST2019(FieldReaderABC):
     @normalization.setter
     def normalization(self, new_normalization):
         self._normalization = np.array(new_normalization)
+
+    @property
+    def complex_fields(self):
+        """ 
+        Returns: ndarray of complex fields
+        """
+        return self._complex_fields
+    
+    @property
+    def xdim(self):
+        """
+        Returns: X-dimensions
+        """
+        return self._xdim
+
+    @property
+    def ydim(self):
+        """
+        Returns: Y-dimensions
+        """
+        return self._ydim
+    
+    @property
+    def zdim(self):
+        """
+        Returns: Z-dimensions
+        """
+        return self._zdim
