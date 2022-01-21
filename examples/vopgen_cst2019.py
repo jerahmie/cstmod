@@ -9,6 +9,9 @@ import hdf5storage
 import numpy as np
 import scipy as sp
 from rfutils import xmat
+from tkinter import Tk
+from tkinter.filedialog import askdirectory
+
 from cstmod.field_reader import FieldReaderCST2019, GenericDataNArray
 
 from cstmod.vopgen import SARMaskCST2019
@@ -101,23 +104,25 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 64  # Frequency of interest, MHz
+    freq0 = 447  # Frequency of interest, MHz
     nchannels = 1
     generate_mask = True
 
-    print("vopgen cst2019 tests...")
-    if 'win32' == sys.platform:
-        base_mount = os.path.join('F:', os.sep)
-    else:
-        base_mount = os.path.join('/mnt', 'e')
-    #project_path = os.path.join(base_mount, 'CST_Backup', \
-    #                           '16Tx_7T_LB_Phantom_40mm_shield_MRT_PVP_agar_gel_E')
-    project_path = os.path.join(base_mount, 'CST_Results', \
-                   'STTR_Tx_Lightbulb')
+    #if 'win32' == sys.platform:
+    #    base_mount = os.path.join('F:', os.sep)
+    #else:
+    #    base_mount = os.path.join('/mnt', 'e')
+
+    #project_path = os.path.join(base_mount, 'CST_Post', \
+    #               'Self_Decoupled_10r5t_16tx_Cosim_Tune_Match_2')
+    Tk().withdraw()
+    project_path = askdirectory()
     accepted_power_file_pattern = os.path.join(project_path, 'Export',
-                                               'Power_Excitation*_Power Accepted (DS).txt')
+                                               "Power_Excitation (AC*)_Power Accepted.txt")
+    print(accepted_power_file_pattern)
     accepted_power_narray = GenericDataNArray()
     accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+    print(accepted_power_narray.nchannels)
     f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
     accepted_power_at_freq = np.abs(accepted_power_at_freq)
     print("accepted power: ", accepted_power_at_freq)
