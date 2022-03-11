@@ -16,14 +16,14 @@ class TestCstRegInfo(unittest.TestCase):
     TestCase class for extracting CSTResultReader.dll version and location.
     """
     @classmethod
-    def setUpClass(csl):
+    def setUpClass(cls):
         pass
     
     def setUp(self):
         """
         possible_cst_versions -- list of CST versions supported in this test class.
         """
-        self.supported_cst_versions = ['2018','2019']
+        self.supported_cst_versions = ['2018', '2019', '2020','2021']
     
     def test_framework_setup(self):
         """Ensure unittests are set up properly.

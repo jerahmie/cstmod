@@ -19,14 +19,14 @@ class FieldReaderABC(ABC):
         """
         pass
 
-    @abstractmethod
-    def write_vopgen(self, file_name):
-        """Create vopgen output files for e-field and b-field, masks, etc.
-        Args:
-            output_dir: Output directory.  Default is export directory within
-                        the source directory.
-        """
-        pass
+    #@abstractmethod
+    #def write_vopgen(self, file_name):
+    #    """Create vopgen output files for e-field and b-field, masks, etc.
+    #    Args:
+    #        output_dir: Output directory.  Default is export directory within
+    #                    the source directory.
+    #    """
+    #    pass
 
     #@abstractproperty
     #def ex(self):

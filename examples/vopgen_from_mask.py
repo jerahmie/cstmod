@@ -66,7 +66,7 @@ def write_propmat(vopgen_dir, mass_density, conductivity):
     nz = len(zdim)
 
     mdenmap = np.multiply(mass_density, sarmask_new)
-    condmap = np.zeros((len(xdim), len(ydim), len(zdim), 3), dtype=np.float)
+    condmap = np.zeros((len(xdim), len(ydim), len(zdim), 3), dtype=float)
     condmap1x = np.multiply(conductivity, sarmask_new)
     condmap[:,:,:,0] = condmap1x
     condmap[:,:,:,1] = condmap1x
@@ -87,8 +87,9 @@ def write_propmat(vopgen_dir, mass_density, conductivity):
 
 if "__main__" == __name__:
     mass_density = 1120.0 # g/L
-    conductivity = 0.6958 # S/m
+    conductivity =0.56113 # S/m
     #vopgen_dir = os.path.join('D:\\', 'CST_Projects','Vopgen')
-    vopgen_dir = os.path.join('/home','jerahmie','Data','CST_Projects', 'Vopgen')
+    #vopgen_dir = os.path.join('/home','jerahmie','Data','CST_Projects', 'Vopgen')
+    vopgen_dir = os.path.join('E:\\','CST_Field_Post','Self_Decoupled_10r5t_16tx_64Rx_Fields_CST2020_3','Export','Vopgen')
     write_massdensitymap3d(vopgen_dir, mass_density)
     write_propmat(vopgen_dir, mass_density, conductivity)

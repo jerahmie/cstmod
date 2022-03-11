@@ -1,6 +1,5 @@
 """Test reading admitted powers per channel.
 """
-
 import unittest
 
 class TestAdmittedPower(unittest.TestCase):

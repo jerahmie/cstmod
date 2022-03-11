@@ -8,7 +8,7 @@ import numpy as np
 import scipy.io as spio
 import unittest
 from cstmod.cstutil import CSTRegInfo
-from cstmod import CSTResultReader, CSTMaterialType, CSTBoundaryType, CSTFieldMonitor, CSTPoint, CSTErrorCodes
+from cstmod.field_reader import CSTResultReader, CSTMaterialType, CSTBoundaryType, CSTFieldMonitor, CSTPoint, CSTErrorCodes
 cstmod_test_data_dir = normpath(join(realpath(__file__),
                                               r'..', r'..',
                                               r'Test_Data'))

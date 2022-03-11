@@ -9,6 +9,9 @@ import hdf5storage
 import numpy as np
 import scipy as sp
 from rfutils import xmat
+from tkinter import Tk
+from tkinter.filedialog import askdirectory
+
 from cstmod.field_reader import FieldReaderCST2019, GenericDataNArray
 
 from cstmod.vopgen import SARMaskCST2019
@@ -20,12 +23,14 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
     efields_fr = FieldReaderCST2019()
     efields_fr.normalization = normalization
     print('e-field normalization: ', efields_fr.normalization)
+    print('[DEBUG] Saving',  os.path.join(export_dir, 'efMapArrayN.mat'))
     efields_fr.write_vopgen(freq0, export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
                             export_type='e-field', merge_type='AC',
                             rotating_frame=False)
     hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
+    print('[DEBUG] Saving ', os.path.join(export_dir, 'bfMapArrayN.mat'))
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
                             export_type='h-field', merge_type='AC',
@@ -91,7 +96,7 @@ def load_current_data(field_data_file):
     jfield_data = np.zeros((np.shape(jxre)[0],
                             np.shape(jxre)[1],
                             np.shape(jxre)[2], 3),
-                            dtype = np.complex)
+                            dtype = np.complex128)
     jfield_data[:,:,:,0] = jxre + 1.0j*jxim
     jfield_data[:,:,:,1] = jyre + 1.0j*jyim
     jfield_data[:,:,:,2] = jzre + 1.0j*jzim
@@ -99,35 +104,42 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 300  # Frequency of interest
+    freq0 = 447  # Frequency of interest, MHz
     nchannels = 16
     generate_mask = True
+    normalize_power = 'Custom'
 
-    print("vopgen cst2019 tests...")
-    if 'win32' == sys.platform:
-        base_mount = os.path.join('F:', os.sep)
+    #if 'win32' == sys.platform:
+    #    base_mount = os.path.join('F:', os.sep)
+    #else:
+    #    base_mount = os.path.join('/mnt', 'e')
+
+    #project_path = os.path.join(base_mount, 'CST_Post', \
+    #               'Self_Decoupled_10r5t_16tx_Cosim_Tune_Match_2')
+    Tk().withdraw()
+    project_path = askdirectory()
+    if normalize_power == "Auto":
+        accepted_power_file_pattern = os.path.join(project_path, 'Export',
+                                               "Power_Excitation (AC*)_Power Accepted.txt")
+        print(accepted_power_file_pattern)
+        accepted_power_narray = GenericDataNArray()
+        accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+        print(accepted_power_narray.nchannels)
+        f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
+        accepted_power_at_freq = np.abs(accepted_power_at_freq)
+        print("accepted power: ", accepted_power_at_freq)
+        normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
+    elif normalize_power == "Custom":
+        normalization = [0.49700988, 0.90923172, 0.52187082, 0.82343631,
+                         0.59565747, 0.68619393, 0.62657227, 0.6994412,
+                         0.55670951, 0.82025112, 0.56925952, 0.9143282,
+                         0.48671153, 0.86331512, 0.46899147, 0.77091553]
     else:
-        base_mount = os.path.join('/export', 'raid1', 'jerahmie-data')
-    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds')
-    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_feeds_hard_ground')
-    #project_path = os.path.join(base_mount, 'KU_Ten_32_ELD_Dipole_element_v3_with_Rx32_2')
-    #project_path = os.path.join(base_mount, 'KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4')
-    project_path = os.path.join(base_mount, '16Tx_7T_LB Phantom_40mm shield_1_4_1')
-    #accepted_power_file_pattern = os.path.join(project_path, 'Export',
-    #                                           'Power_Excitation*_Power Accepted (DS).txt')
-    #accepted_power_narray = GenericDataNArray()
-    #accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
-    #f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
-    #accepted_power_at_freq = np.abs(accepted_power_at_freq)
-    #print("accepted power: ", accepted_power_at_freq)
-    #normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
-    normalization = [1.0 for i in range(nchannels)]
-    #print(normalization)
+        normalization = [1.0 for i in range(nchannels)]
+        
+    print(normalization)
     
-    vopgen_dir = os.path.join(project_path, 'Export', '3d', 'Vopgen')
-    if not os.path.exists(vopgen_dir):
-        os.mkdir(vopgen_dir)
-
+    vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
     export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
@@ -141,6 +153,7 @@ if "__main__" == __name__:
     if generate_mask:
         if os.path.exists(current_density_file):
             # Calculate mask from current density and E-field
+            print('Calculating SAR mask from current density and E-fields.')
             current_density = load_current_data(current_density_file)
 
             ef_shape = np.shape(efMapArrayN)
@@ -154,9 +167,10 @@ if "__main__" == __name__:
                                                     current_density)
         else:
             # Calculate mask from E- and H- fields
+            print('Calculating SAR mask from H- and E-fields.')
             (nx, ny, nz, nfcomp, nchannels) = np.shape(efMapArrayN)
-            ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
-            hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex)
+            ef_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex128)
+            hf_mask_shim = np.zeros((nx, ny, nz, nfcomp), dtype=np.complex128)
 
             phases = np.array([2.0*np.pi*ch for ch in range(nchannels)])
             for channel in range(nchannels):
