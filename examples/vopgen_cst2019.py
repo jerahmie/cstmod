@@ -105,8 +105,9 @@ def load_current_data(field_data_file):
 
 if "__main__" == __name__:
     freq0 = 447  # Frequency of interest, MHz
-    nchannels = 1
+    nchannels = 16
     generate_mask = True
+    normalize_power = 'Custom'
 
     #if 'win32' == sys.platform:
     #    base_mount = os.path.join('F:', os.sep)
@@ -117,16 +118,25 @@ if "__main__" == __name__:
     #               'Self_Decoupled_10r5t_16tx_Cosim_Tune_Match_2')
     Tk().withdraw()
     project_path = askdirectory()
-    accepted_power_file_pattern = os.path.join(project_path, 'Export',
+    if normalize_power == "Auto":
+        accepted_power_file_pattern = os.path.join(project_path, 'Export',
                                                "Power_Excitation (AC*)_Power Accepted.txt")
-    print(accepted_power_file_pattern)
-    accepted_power_narray = GenericDataNArray()
-    accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
-    print(accepted_power_narray.nchannels)
-    f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
-    accepted_power_at_freq = np.abs(accepted_power_at_freq)
-    print("accepted power: ", accepted_power_at_freq)
-    normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
+        print(accepted_power_file_pattern)
+        accepted_power_narray = GenericDataNArray()
+        accepted_power_narray.load_data_one_d(accepted_power_file_pattern)
+        print(accepted_power_narray.nchannels)
+        f0, accepted_power_at_freq = accepted_power_narray.nchannel_data_at_value(freq0)
+        accepted_power_at_freq = np.abs(accepted_power_at_freq)
+        print("accepted power: ", accepted_power_at_freq)
+        normalization = [1.0/np.sqrt(power) for power in accepted_power_at_freq]
+    elif normalize_power == "Custom":
+        normalization = [0.49700988, 0.90923172, 0.52187082, 0.82343631,
+                         0.59565747, 0.68619393, 0.62657227, 0.6994412,
+                         0.55670951, 0.82025112, 0.56925952, 0.9143282,
+                         0.48671153, 0.86331512, 0.46899147, 0.77091553]
+    else:
+        normalization = [1.0 for i in range(nchannels)]
+        
     print(normalization)
     
     vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
