@@ -51,23 +51,7 @@ if __name__ == "__main__":
     fields_dim = np.shape(efields)
 
     kappa, eps, rho = map_materials(materials_file, efields, conduction_currents)
-    kappa_dict = dict()
-    #kappa_dict['XDim'] = xdim
-    #kappa_dict['YDim'] = ydim
-    #kappa_dict['ZDim'] = zdim
-    #kappa_dict['kappa'] =kappa
-    #hdf5storage.savemat('kappa.mat', kappa_dict)
-    #eps_dict = dict()
-    #eps_dict['XDim'] = xdim
-    #eps_dict['YDim'] = ydim
-    #eps_dict['ZDim'] = zdim
-    #eps_dict['eps'] = eps
-    #hdf5storage.savemat('eps.mat', eps_dict)
-    #rho_dict = dict()
-    #rho_dict['XDim'] = xdim
     
-    #rho_dict['rho'] = rho
-    #hdf5storage.savemat('rho.mat', )
     propmap_dict = dict()
     propmap_dict['XDim'] = xdim
     propmap_dict['YDim'] = ydim
@@ -86,7 +70,11 @@ if __name__ == "__main__":
     sarmask_dict['sarmask_new'] = sarmask
     spio.savemat('sarmask_aligned.mat', sarmask_dict, oned_as='column')
 
-
-    #plt.pcolormesh(kappa[:,:,200,0])
-    #plt.colorbar()
-    #plt.show()
+    massdensity_dict = dict()
+    massdensity_dict['XDim'] = xdim
+    massdensity_dict['YDim'] = ydim
+    massdensity_dict['ZDim'] = zdim
+    massdensity_dict['mden3D'] = rho
+    massdensity_dict['mden3Dm'] = np.multiply(rho, mask)
+    spio.savemat('massdensityMap3D.mat', massdensity_dict, oned_as='column')
+    
