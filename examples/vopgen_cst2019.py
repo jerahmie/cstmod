@@ -68,13 +68,18 @@ def export_vopgen_mask_from_current_density(export_dir, f0, xdim, ydim, zdim, ef
     normal_dielectric = xmat.NormalDielectric(f0, xdim, ydim, zdim,
                                               efield_data, hfield_data,
                                                current_density)
-    sarmask = SARMaskCST2019(f0, xdim, ydim, zdim,
-                             normal_dielectric.epsilon_r,
-                             normal_dielectric.sigma_eff_from_currents[:,:,:,0])
-    sarmask.epsr_min = 2
+
+    epsr_clean = np.nan_to_num(normal_dielectric.epsilon_r, copy=True,
+                               nan=0.0, posinf=None, neginf=None)
+    sigma_clean = np.nan_to_num(normal_dielectric.sigma_eff_from_currents[:,:,:,0],
+                                copy=True, nan=0.0, posinf=None, neginf=None)
+    
+    sarmask = SARMaskCST2019(f0, xdim, ydim, zdim, epsr_clean, sigma_clean)
+    # todo: refactor magic numbers to *args
+    sarmask.epsr_min = 2.0  
     sarmask.epsr_max = 100
-    sarmask.sigma_min = 0.2 # (S/m)
-    sarmask.sigma_max = 1.0 # (S/m)  Exclude conductors
+    sarmask.sigma_min = 0.05 # (S/m)
+    sarmask.sigma_max = 10.0 # (S/m)  Exclude conductors
     sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned_raw.mat'))
     mat_property_dict = dict()
     mat_property_dict['epsr'] = normal_dielectric.epsilon_r
@@ -106,18 +111,18 @@ def load_current_data(field_data_file):
 if "__main__" == __name__:
     freq0 = 447  # Frequency of interest, MHz
     nchannels = 16
-    generate_mask = True
-    normalize_power = 'Custom'
+    generate_mask = False
+    normalize_power = None
 
     #if 'win32' == sys.platform:
     #    base_mount = os.path.join('F:', os.sep)
     #else:
-    #    base_mount = os.path.join('/mnt', 'e')
+    
+    base_mount = os.path.join(r'/export',r'scratch1')
+    project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
 
-    #project_path = os.path.join(base_mount, 'CST_Post', \
-    #               'Self_Decoupled_10r5t_16tx_Cosim_Tune_Match_2')
-    Tk().withdraw()
-    project_path = askdirectory()
+    #Tk().withdraw()
+    #project_path = askdirectory()
     if normalize_power == "Auto":
         accepted_power_file_pattern = os.path.join(project_path, 'Export',
                                                "Power_Excitation (AC*)_Power Accepted.txt")
@@ -148,7 +153,7 @@ if "__main__" == __name__:
 
     # Choose a shim solution for extracting mask and material properties
     # (initially cp-like mode)
-    current_density_file = os.path.join(project_path, 'Export','3d', 'current (f=447) [AC1].h5')
+    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=447) [AC1].h5')
     #if 0:
     if generate_mask:
         if os.path.exists(current_density_file):

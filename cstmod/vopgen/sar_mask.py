@@ -27,9 +27,9 @@ class SARMaskCST2019(object):
         self._sigma = sigma
         self._epsr = epsr
         self._sigma_min = 0.01 
-        self._sigma_max = 10.0 # S/m
+        self._sigma_max = 3.0 # S/m
         self._epsr_min = 2.0
-        self._epsr_max = 100.0 # S/m
+        self._epsr_max = 100.0 # Epsr
         self._sarmask = None
 
     @property
