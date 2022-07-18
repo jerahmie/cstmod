@@ -1,16 +1,8 @@
 [package]
-name = "cstutil-rs"
+name = "make_exports"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-name = "cstutil_rs"
-crate-type = ["cdylib"]
 
 [dependencies]
-glob = "0.3.0"
-
-[dependencies.pyo3]
-version = "0.16.5"
-features = ["extension-module"]
