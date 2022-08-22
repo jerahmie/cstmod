@@ -2,5 +2,6 @@
 
 members = [
     "cstmod/cstutil/cstutil-rs",
-    "util/make_exports"
+    "util/make_exports",
+    "util/merge_exports"
 ]
