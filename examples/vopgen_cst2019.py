@@ -34,7 +34,7 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
                             export_type='h-field', merge_type='AC',
-                            rotating_frame=True)
+                            rotating_frame=True, field_direction=-1)
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN_rect.mat'),
                             export_type='h-field', merge_type='AC',

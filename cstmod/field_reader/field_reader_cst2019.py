@@ -45,7 +45,7 @@ class FieldReaderCST2019(FieldReaderABC):
         self._source_dir = ""
         self._dim_scale = 0.001
 
-    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, version='2020'):
+    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, field_direction=+1, version='2020'):
         """Read fields from multiple files.  A field patter will be constructed
         from input values.  A FileNotFoundError will be raised if a set of files
         cannot be constructed.
@@ -113,12 +113,18 @@ class FieldReaderCST2019(FieldReaderABC):
 
                 if rotating_frame:
                     # positive rotating frame (e.g. B1+)
-                    fx = fxre + 1.0j*fxim
+                    fx = fxre + 0.0j*fxim
                     fy = fyre + 1.0j*fyim
-                    rotating_field_plus = 0.5*(fx + 1.0j*fy)
+                    if field_direction < 0:
+                        rotating_field_plus = 0.5*(fx - 1.0j*fy)
+                    else:
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
                     self._complex_fields[:,:,:,0,channel] = self._normalization[channel] * rotating_field_plus
                     # negative rotating frame (e.g. B1-)
-                    rotating_field_minus = 0.5*(np.conj(fx) + 1.0j*np.conj(fy))
+                    if field_direction < 0:
+                        rotating_field_minus = 0.5*np.conj(fx + 1.0j*fy)
+                    else:
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
                     self._complex_fields[:,:,:,1,channel] = self._normalization[channel] * rotating_field_minus
                 else:
                     # X-fields
