@@ -20,10 +20,10 @@ def sarmask_cleanup(input_filename, output_filename):
     y0 = 0.0
     z0 = 0.0
 
-    mask_radius = 0.100 # mm
+    mask_radius = 0.100 # m
 
-    zmax = 0.150 # mm
-    zmin = -0.150 # mm
+    zmax = 0.220 # m
+    zmin = -0.150 # m
     print('zdim: ', zdim)
     zmax_ind = np.argmin(abs(zdim - zmax))
     zmin_ind = np.argmin(abs(zdim - zmin))
@@ -77,6 +77,9 @@ if "__main__" == __name__:
         sarmask_filename = os.path.join(r'/export',
                                         r'raid1',
                                         r'jerahmie-data',
+                                        r'PTx_Knee_7T',
+                                        r'Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2',
+                                        r'Export',
                                         r'Vopgen',
                                         r'sarmask_aligned_raw.mat')
 

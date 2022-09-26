@@ -109,17 +109,20 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 447  # Frequency of interest, MHz
-    nchannels = 16
-    generate_mask = False
+    freq0 = 297 # Frequency of interest, MHz
+    nchannels = 8
+    generate_mask = True
     normalize_power = None
 
     #if 'win32' == sys.platform:
     #    base_mount = os.path.join('F:', os.sep)
     #else:
     
-    base_mount = os.path.join(r'/export',r'scratch1')
-    project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
+    #base_mount = os.path.join(r'/export',r'scratch1')
+    #project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
+
+    base_mount = os.path.join(r'/export', r'raid1', r'jerahmie-data', r'PTx_Knee_7T')
+    project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2')
 
     #Tk().withdraw()
     #project_path = askdirectory()
@@ -153,7 +156,7 @@ if "__main__" == __name__:
 
     # Choose a shim solution for extracting mask and material properties
     # (initially cp-like mode)
-    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=447) [AC1].h5')
+    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=' + str(297) +') [AC1].h5')
     #if 0:
     if generate_mask:
         if os.path.exists(current_density_file):

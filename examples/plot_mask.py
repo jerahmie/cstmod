@@ -7,10 +7,11 @@ import numpy as np
 from scipy import constants
 import h5py
 import hdf5storage
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 
-def plot_sar_mask(mask_file):
+def plot_sar_mask(mask_file: str) -> Figure:
     """Create a 4x4 grid of axial plots of SAR mask.
     """
     if not os.path.isfile(mask_file):
@@ -33,10 +34,35 @@ def plot_sar_mask(mask_file):
     for axx in axs:
         for ayy in axx:
             plt.sca(ayy)
-            pc = plt.pcolor(sarmask[:,:,zslice], vmin=0, vmax=1)
+            pc = plt.pcolormesh(sarmask[:,:,zslice], vmin=0, vmax=1)
             zslice += dzslice
             ayy.set_aspect('equal')
     return fig
+    
+def plot_sar_mask_sac(sar_mask: np.ndarray,
+                      xdim: np.ndarray, 
+                      ydim: np.ndarray,
+                      zdim: np.ndarray,
+                      plot_point: tuple) -> Figure:
+    """Plot the SAR mask Axial, Sagittal, and Coronal planes.
+    Attributes:
+        mask_file: String of valid mask file path.
+        x: 
+        y:
+        z:
+        plot_point: tuple representing the x,y,z position to plot
+    
+    Returns:
+        Matplotlib Figure handle
+    """
+    fig, axs = plt.subplots(1,3)
+    ix = np.argmin(np.abs(xdim-plot_point[0]))
+    jy = np.argmin(np.abs(ydim-plot_point[1]))
+    kz = np.argmin(np.abs(zdim-plot_point[2]))
+    axs[0].pcolormesh(sar_mask[:,:,kz])
+    axs[1].pcolormesh(sar_mask[:,jy,:])
+    axs[2].pcolormesh(sar_mask[ix,:,:])    
+    return fig    
 
 def plot_material_properties(mat_file):
     """Plot the material properties.
@@ -177,15 +203,22 @@ def plot_propmap(prop_file):
 if __name__ == "__main__":
     #sar_mask_file = os.path.join('/export','raid1','jerahmie-data', \
     #                             'Vopgen','sarmask_aligned.mat')
+    vopgen_dir = os.path.join('/export','raid1','jerahmie-data','PTx_Knee_7T','Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2','Export','Vopgen')
     #vopgen_dir = os.path.join('D:', os.sep, 'Temp_CST','KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4', 'Vopgen')
-    vopgen_dir = os.path.join('E:', os.sep, 'CST_Field_Post','Self_Decoupled_10r5t_16tx_64Rx_Fields_CST2020_3', 'Export', 'Vopgen')
+    #vopgen_dir = os.path.join('E:', os.sep, 'CST_Field_Post','Self_Decoupled_10r5t_16tx_64Rx_Fields_CST2020_3', 'Export', 'Vopgen')
     sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned.mat')
     material_file = os.path.join(vopgen_dir, 'mat_properties_raw.mat')
     #massdensity3d_file 
     #propmatfile
     bfmaparrayn_rect_file = os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat')
     print("Plotting the SAR mask")
-    plot_sar_mask(sar_mask_file)
+    sar_dict = hdf5storage.loadmat(sar_mask_file)
+    xdim = sar_dict["XDim"]
+    ydim = sar_dict["YDim"]
+    zdim = sar_dict["ZDim"]
+    sar_mask = sar_dict["sarmask_new"]
+    #plot_sar_mask(sar_mask_file)
+    plot_sar_mask_sac(sar_mask, xdim, ydim, zdim, (0.0, 0.0, 0.0))
     #plot_material_properties(material_file)
     #plot_mag_b1(bfmaparrayn_rect_file)
     #plot_massdensity3d(os.path.join(vopgen_dir, 'massdensityMap3D.mat'))
