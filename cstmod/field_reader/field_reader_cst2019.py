@@ -113,16 +113,16 @@ class FieldReaderCST2019(FieldReaderABC):
 
                 if rotating_frame:
                     # positive rotating frame (e.g. B1+)
-                    fx = fxre + 0.0j*fxim
+                    fx = fxre + 1.0j*fxim
                     fy = fyre + 1.0j*fyim
                     if field_direction < 0:
-                        rotating_field_plus = 0.5*(fx - 1.0j*fy)
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
                     else:
                         rotating_field_plus = 0.5*(fx + 1.0j*fy)
                     self._complex_fields[:,:,:,0,channel] = self._normalization[channel] * rotating_field_plus
                     # negative rotating frame (e.g. B1-)
                     if field_direction < 0:
-                        rotating_field_minus = 0.5*np.conj(fx + 1.0j*fy)
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
                     else:
                         rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
                     self._complex_fields[:,:,:,1,channel] = self._normalization[channel] * rotating_field_minus
@@ -184,7 +184,7 @@ class FieldReaderCST2019(FieldReaderABC):
         return "[[]".join(f_padded_right_bracket)
 
     def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
-                     merge_type = 'AC', rotating_frame = False):
+                     merge_type = 'AC', rotating_frame = False, field_direction=+1):
         """Create vopgen output files for e-field and b-field, masks, etc.
         Args:
             output_dir: Output directory.  Default is export directory within
@@ -199,7 +199,7 @@ class FieldReaderCST2019(FieldReaderABC):
             os.makedirs(output_dir)
 
         #export_type = self.cst_3d_field_types[export_type]
-        self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
+        self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame, field_direction)
         export_dict = dict()
         export_dict[u'XDim'] = self._xdim
         export_dict[u'YDim'] = self._ydim
