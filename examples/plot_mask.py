@@ -203,7 +203,7 @@ def plot_propmap(prop_file):
 if __name__ == "__main__":
     #sar_mask_file = os.path.join('/export','raid1','jerahmie-data', \
     #                             'Vopgen','sarmask_aligned.mat')
-    vopgen_dir = os.path.join('/export','raid1','jerahmie-data','PTx_Knee_7T','Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2','Export','Vopgen')
+    vopgen_dir = os.path.join('/export','disk4','jerahmie-data','PTx_Knee_7T','Knee_pTx_7T_DB_Siemens_Tom_Leg_Phantom_Flip_Fields_retune_20221106_1','Export','Vopgen')
     #vopgen_dir = os.path.join('D:', os.sep, 'Temp_CST','KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4', 'Vopgen')
     #vopgen_dir = os.path.join('E:', os.sep, 'CST_Field_Post','Self_Decoupled_10r5t_16tx_64Rx_Fields_CST2020_3', 'Export', 'Vopgen')
     sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned.mat')

@@ -92,12 +92,12 @@ def plot_b1plus_shim(b1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=0.4):
     """
     #bfarray_dict = hdf5storage.loadmat(bfmap_file)
 
-    xmin = -0.150
-    xmax = 0.150
-    ymin = -0.150
-    ymax = 0.150
-    zmin = 0.1
-    zmax = 0.5
+    xmin = xdim[0]
+    xmax = xdim[-1]
+    ymin = ydim[0]
+    ymax = ydim[-1]
+    zmin = zdim[0]
+    zmax = zdim[-1]
 
     #xdim = bfarray_dict['XDim']
     #ydim = bfarray_dict['YDim']
@@ -115,18 +115,6 @@ def plot_b1plus_shim(b1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=0.4):
     #nchannels = b1_shape[-1]
     #nfield_components = b1_shape[3]
     
-    #if mask_file:
-    #    sarmask = hdf5storage.loadmat(mask_file)['sarmask_new']
-    #    for ch in range(nchannels):
-    #        for comp in range(nfield_components):
-    #            b1[:,:,:,comp,ch] = np.multiply(b1[:,:,:,comp,ch], sarmask)
-    # apply shim
-    #b1_shim = np.zeros((b1_shape[0], b1_shape[1], b1_shape[2]),
-    #                   dtype=np.complex128)
-
-    #for ch in range(nchannels):
-    #    b1_shim += shim_mags[ch]*b1[:,:,:,comp,ch]*np.exp(1.0j*shim_phases[ch])
-
     nrows = 1
     ncols = 3
     zi = 0
@@ -208,6 +196,7 @@ if __name__ == "__main__":
     #bfmap_array_file = os.path.join(vopgen_dir,
     #                                r'b1plus_1w_stim.mat')
     sarmask_file = os.path.join(vopgen_dir,
+
                                   r'sarmask_aligned.mat')
 
     if not os.path.isfile(bfmap_array_file):
@@ -218,11 +207,11 @@ if __name__ == "__main__":
         raise FileNotFoundError(sarmask_file)
         sys.exit()
     
-    print("plot the masked field results...")
+    #print("plot the masked field results...")
     # plot per-channel fields
-    nz= 56
-    z0 = 0.175
-    deltaz = 0.005  # slice spaceing
+    #nz= 56
+    #z0 = 0.0
+    #deltaz = 0.005  # slice spacing
     #plot_points_z = plot_points(nz, deltaz, z0)
     #plot_points_z  = [z0 + deltaz * n for n in range(nz)]
     #print(plot_points_z[::-1], plot_points_z.reverse())
@@ -250,12 +239,13 @@ if __name__ == "__main__":
 
     # shim coefficients are from b1CoeffCpx
 
-    nchannels = 16
+    nchannels = 8 
     x0 = 0.0
     y0 = 0.0
-    z0 = 0.24
+    z0 = 0.0
 
-    b1shim_name = 'cplike'
+    #b1shim_name = 'incremental'
+    b1shim_name = 'ch8'
 
     if b1shim_name == 'cplike':
         # shim: cp-like mode
@@ -296,6 +286,7 @@ if __name__ == "__main__":
                                     -0.21563548+0.1264964j,
                                      0.20205324+0.14722257j], dtype=complex)
 
+
     
     # shim solution 9
     elif b1shim_name == 'random9':
@@ -319,80 +310,52 @@ if __name__ == "__main__":
 
     elif b1shim_name == 'ch1':
         # shim: ch1
-        shim_data_re_im = np.array([1.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j], dtype=complex)
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[0] = (1.+0.j)/np.sqrt(2.0)
 
     elif b1shim_name == 'ch2':
-        # shim: ch2 
-        shim_data_re_im = np.array([0.+0.j,
-                                    1.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j], dtype=complex)
+        # shim: ch2
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[1] = (1.+0.j)/np.sqrt(2.0)
 
+    elif b1shim_name == 'ch3':
+        # shim: ch3
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[2] = (1.+0.j)/np.sqrt(2.0)
+  
+    elif b1shim_name == 'ch4':
+        # shim: ch4
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[3] = (1.+0.j)/np.sqrt(2.0)
+
+    elif b1shim_name == 'ch5':
+        # shim: ch5
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[4] = (1.+0.j)/np.sqrt(2.0)
+
+    elif b1shim_name == 'ch6':
+        # shim: ch6
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[5] = (1.+0.j)/np.sqrt(2.0)
 
     elif b1shim_name == 'ch7':
         # shim: ch7
-        shim_data_re_im = np.array([0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    1.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j], dtype=complex)        
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[6] = (1.+0.j)/np.sqrt(2.0)
+
+    elif b1shim_name == 'ch8':
+        # shim: ch7
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+        shim_data_re_im[7] = (1.+0.j)/np.sqrt(2.0)
+
+    elif b1shim_name == 'incremental':
+        # uniform phases across channels
+        shim_data_re_im = np.array([1.0*np.exp(2.0j*ch*np.pi/nchannels) for ch in np.arange(nchannels)])
 
     else:
         # zeros phase by default
-        shim_data_re_im = np.array([0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j,
-                                    0.+0.j], dtype=complex)
+        shim_data_re_im = np.zeros(nchannels, dtype=complex)
+    
     print('b1shim_name: ', b1shim_name, " | ",  shim_data_re_im)
     b1plus = b1_shim(b1dict['bfMapArrayN'],
                      np.abs(shim_data_re_im),
@@ -405,18 +368,18 @@ if __name__ == "__main__":
     # range(150,5,-5)
 
     #plot_slices_z(b1plus_masked, plot_points(56, -2, 130) ,vmax=0.5)
-    plot_b1plus_shim(b1plus_masked, xdim, ydim, zdim, plot_point=(x0,y0,z0), vmax=0.6)
+    plot_b1plus_shim(b1plus_masked, xdim, ydim, zdim, plot_point=(x0,y0,z0), vmax=0.2)
     plt.show()
     
     # save the shim to a matlab file
     
-    export_dict = dict()
-    export_dict['XDim'] = xdim
-    export_dict['YDim'] = ydim
-    export_dict['ZDim'] = zdim
-    export_dict['b1p_shim'] = b1plus
-    export_dict['b1p_shim_masked'] = b1plus_masked
-    export_dict['mask'] = sarmask
-    export_dict['shim_name']  = b1shim_name
-    export_dict['shim_data_re_im'] = shim_data_re_im
-    hdf5storage.savemat(b1shim_name+".mat", export_dict, oned_as='column')
+#   export_dict = dict()
+#   export_dict['XDim'] = xdim
+#   export_dict['YDim'] = ydim
+#   export_dict['ZDim'] = zdim
+#   export_dict['b1p_shim'] = b1plus
+#   export_dict['b1p_shim_masked'] = b1plus_masked
+#   export_dict['mask'] = sarmask
+#   export_dict['shim_name']  = b1shim_name
+#   export_dict['shim_data_re_im'] = shim_data_re_im
+#   hdf5storage.savemat(b1shim_name+".mat", export_dict, oned_as='column')

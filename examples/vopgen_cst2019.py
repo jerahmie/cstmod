@@ -121,8 +121,8 @@ if "__main__" == __name__:
     #base_mount = os.path.join(r'/export',r'scratch1')
     #project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
 
-    base_mount = os.path.join(r'/export', r'raid1', r'jerahmie-data', r'PTx_Knee_7T')
-    project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2')
+    base_mount = os.path.join(r'/export', r'disk4', r'jerahmie-data', r'PTx_Knee_7T')
+    project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Tom_Leg_Phantom_Flip_Fields_retune_20221106_1')
 
     #Tk().withdraw()
     #project_path = askdirectory()

@@ -12,8 +12,8 @@ import functools
 import numpy as np
 import matplotlib.pyplot as plt
 from cstmod.field_reader import padbrackets
-if  sys.platform == 'win32':
-    import fnmatch
+#if  sys.platform == 'win32':
+import fnmatch
 
 try:
     from tkinter import Tk
@@ -91,23 +91,27 @@ if __name__ == "__main__":
 
     Tk().withdraw()
     if cst_export_dir is None:
-        cst_export_dir = askdirectory(title="CST Project Directory")
+        cst_export_dir = askdirectory(title="CST Project Directory", initialdir='/')
 
     vopgen_dir = os.path.join(cst_export_dir, r'Export', r'Vopgen')
     print(vopgen_dir, ' Exists?: ', os.path.exists(vopgen_dir))
+    if not os.path.exists(vopgen_dir):
+        os.mkdir(vopgen_dir)
     field3d_dir = os.path.join(cst_export_dir, r'Export', r'3d')
 
     #field3d_str_pattern = os.path.join(field3d_dir, field_pattern)
     
     field3d_export_files = os.listdir(field3d_dir)
-    b1p_files = fnmatch.filter(field3d_export_files, padbrackets("B1+ (f=447) [AC*] 1.0 W stim.h5"))
+    b1p_files = fnmatch.filter(field3d_export_files, padbrackets("B1+ (f=*) [AC*].h5"))
     sorted_b1p_files = sorted(b1p_files, key=lambda fl: int(re.search(r'\[AC' r'([\d]+)\]', fl).group(1)))
     sorted_b1p_files_full  = [os.path.join(field3d_dir, file) for file in sorted_b1p_files]
 
-    b1m_files = fnmatch.filter(field3d_export_files, padbrackets("B1- (f=447) [AC*] 1.0 W stim.h5"))
+    b1m_files = fnmatch.filter(field3d_export_files, padbrackets("B1- (f=*) [AC*].h5"))
     sorted_b1m_files = sorted(b1m_files, key=lambda fl: int(re.search(r'\[AC' r'([\d]+)\]', fl).group(1)))
     sorted_b1m_files_full  = [os.path.join(field3d_dir, file) for file in sorted_b1m_files]
 
+    print("B1+ files: ", sorted_b1p_files_full)
+    print("B1- files: ", sorted_b1m_files_full) 
     # read fields
     xdim, ydim, zdim, b1p_arrayn = read_fields(sorted_b1p_files_full)
     xdim, ydim, zdim, b1m_arrayn = read_fields(sorted_b1m_files_full)
@@ -121,4 +125,5 @@ if __name__ == "__main__":
     b1_arrayn[:,:,:,0,:] = b1p_arrayn
     b1_arrayn[:,:,:,1,:] = b1m_arrayn
 
-    write_fields(os.path.join(vopgen_dir,"b1plus_1w_stim.mat"), xdim, ydim, zdim, b1_arrayn)
+    write_fields(os.path.join(vopgen_dir,"bfMapArrayN.mat"), xdim, ydim, zdim, b1_arrayn)
+    #write_fields(os.path.join(vopgen_dir,"b1plus_cst.mat"), xdim, ydim, zdim, b1_arrayn)
