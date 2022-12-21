@@ -45,7 +45,7 @@ class FieldReaderCST2019(FieldReaderABC):
         self._source_dir = ""
         self._dim_scale = 0.001
 
-    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, version='2020'):
+    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, field_direction=+1, version='2020'):
         """Read fields from multiple files.  A field patter will be constructed
         from input values.  A FileNotFoundError will be raised if a set of files
         cannot be constructed.
@@ -115,10 +115,16 @@ class FieldReaderCST2019(FieldReaderABC):
                     # positive rotating frame (e.g. B1+)
                     fx = fxre + 1.0j*fxim
                     fy = fyre + 1.0j*fyim
-                    rotating_field_plus = 0.5*(fx + 1.0j*fy)
+                    if field_direction < 0:
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
+                    else:
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
                     self._complex_fields[:,:,:,0,channel] = self._normalization[channel] * rotating_field_plus
                     # negative rotating frame (e.g. B1-)
-                    rotating_field_minus = 0.5*(np.conj(fx) + 1.0j*np.conj(fy))
+                    if field_direction < 0:
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
+                    else:
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
                     self._complex_fields[:,:,:,1,channel] = self._normalization[channel] * rotating_field_minus
                 else:
                     # X-fields
@@ -178,7 +184,7 @@ class FieldReaderCST2019(FieldReaderABC):
         return "[[]".join(f_padded_right_bracket)
 
     def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
-                     merge_type = 'AC', rotating_frame = False):
+                     merge_type = 'AC', rotating_frame = False, field_direction=+1):
         """Create vopgen output files for e-field and b-field, masks, etc.
         Args:
             output_dir: Output directory.  Default is export directory within
@@ -193,7 +199,7 @@ class FieldReaderCST2019(FieldReaderABC):
             os.makedirs(output_dir)
 
         #export_type = self.cst_3d_field_types[export_type]
-        self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
+        self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame, field_direction)
         export_dict = dict()
         export_dict[u'XDim'] = self._xdim
         export_dict[u'YDim'] = self._ydim

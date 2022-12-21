@@ -9,7 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections.abc import Iterable
 from tkinter import Tk
-from tkinter.filedialog import askdirectory
+#from tkinter.filedialog import askdirectory
+from tkinter.filedialog import askopenfile
 
 def b1_shim(b1, shim_mags, shim_phases, comp):
     """apply shim"""
@@ -87,7 +88,7 @@ def plot_b1plus_ch(bfmap_file, ch_mags, plot_points_z, mask_file=None):
     plt.suptitle("Simulation Self-Decoupled")
     return fig, axs
 
-def plot_b1plus_shim(b1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=0.4):
+def plot_b1plus_shim(b1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=0.1):
     """ Plot the b1 fields with a given phase.
     """
     #bfarray_dict = hdf5storage.loadmat(bfmap_file)
@@ -183,21 +184,26 @@ def plot_slices_z(field3d, z_slices, vmax=1.0):
 if __name__ == "__main__":
 
     #vopgen_dir =  "D:/CST_Projects/Self_Decoupled/Self_Decoupled_10r5t_16tx_Cosim_Tune_Match_2/Export/Vopgen"
-    try:
-        vopgen_dir
-    except NameError:
-        Tk().withdraw()
-        vopgen_dir = askdirectory(title="Vopgen Directory")
-        print("vopgen_dir = \"" + vopgen_dir.strip() + "\"")
+    #try:
+    #    vopgen_dir
+    #except NameError:
+    #    Tk().withdraw()
+    #    vopgen_dir = askdirectory(title="Vopgen Directory")
 
+    #    print("vopgen_dir = \"" + vopgen_dir.strip() + "\"")
 
-    bfmap_array_file = os.path.join(vopgen_dir,
-                                    r'bfMapArrayN.mat')
+    bfmap_array_file = askopenfile(title="B1+ Fields",
+                                   initialdir='/').name
+    #bfmap_array_file = os.path.join(vopgen_dir,
+    #                                r'bfMapArrayN.mat')
     #bfmap_array_file = os.path.join(vopgen_dir,
     #                                r'b1plus_1w_stim.mat')
-    sarmask_file = os.path.join(vopgen_dir,
-
-                                  r'sarmask_aligned.mat')
+    #sarmask_file = os.path.join(vopgen_dir,
+    #                              r'sarmask_aligned.mat')
+    print(bfmap_array_file)
+    print(os.path.dirname(bfmap_array_file))
+    sarmask_file = askopenfile(title="Mask File", 
+                   initialdir=os.path.dirname(bfmap_array_file)).name
 
     if not os.path.isfile(bfmap_array_file):
         raise FileNotFoundError(bfmap_array_file)
@@ -238,7 +244,6 @@ if __name__ == "__main__":
 
 
     # shim coefficients are from b1CoeffCpx
-
     nchannels = 8 
     x0 = 0.0
     y0 = 0.0

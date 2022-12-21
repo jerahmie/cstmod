@@ -64,7 +64,7 @@ def plot_sar_mask_sac(sar_mask: np.ndarray,
     axs[2].pcolormesh(sar_mask[ix,:,:])    
     return fig    
 
-def plot_material_properties(mat_file):
+def plot_material_properties(mat_file: str):
     """Plot the material properties.
     """
     if not os.path.isfile(mat_file):
@@ -217,8 +217,8 @@ if __name__ == "__main__":
     ydim = sar_dict["YDim"]
     zdim = sar_dict["ZDim"]
     sar_mask = sar_dict["sarmask_new"]
-    #plot_sar_mask(sar_mask_file)
-    plot_sar_mask_sac(sar_mask, xdim, ydim, zdim, (0.0, 0.0, 0.0))
+    plot_sar_mask(sar_mask_file)
+    #plot_sar_mask_sac(sar_mask, xdim, ydim, zdim, (0.0, 0.0, 0.0))
     #plot_material_properties(material_file)
     #plot_mag_b1(bfmaparrayn_rect_file)
     #plot_massdensity3d(os.path.join(vopgen_dir, 'massdensityMap3D.mat'))
