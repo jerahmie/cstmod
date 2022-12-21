@@ -109,8 +109,8 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 297 # Frequency of interest, MHz
-    nchannels = 8
+    freq0 = 447# Frequency of interest, MHz
+    nchannels = 16
     generate_mask = True
     normalize_power = None
 
@@ -118,11 +118,13 @@ if "__main__" == __name__:
     #    base_mount = os.path.join('F:', os.sep)
     #else:
     
-    #base_mount = os.path.join(r'/export',r'scratch1')
-    #project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
+    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'Self_Decoupled_10r5T',
+            r'SD3', r'column1')
+    project_path = os.path.join(base_mount, r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1')
+    
 
-    base_mount = os.path.join(r'/export', r'disk4', r'jerahmie-data', r'PTx_Knee_7T')
-    project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Tom_Leg_Phantom_Flip_Fields_retune_20221106_1')
+    #base_mount = os.path.join(r'/export', r'disk4', r'jerahmie-data', r'PTx_Knee_7T')
+    #project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Tom_Leg_Phantom_Flip_Fields_retune_20221106_1')
 
     #Tk().withdraw()
     #project_path = askdirectory()
