@@ -1,7 +1,6 @@
 """
 Implement concrete field reader class for CST 2019.
 
-todo: refactor to use result_reader3d
 """
 import os
 import sys
