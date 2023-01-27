@@ -82,6 +82,9 @@ class FieldReaderCST2019(FieldReaderABC):
         self._excitation_type = excitation_type
         self._process_file_list(file_name_pattern)
         self._nchannels = len(self._field_file_list)
+        print("[field_reader_cst2019] file_name_pattern: ", file_name_pattern)
+        print("[field_reader_cst2019] nchannels: ", self._nchannels)
+        print("[field_reader_cst2019] self.field_file_list: ", self._field_file_list)
         if len(self._normalization) != self._nchannels:
             self._normalization = np.ones((self._nchannels), dtype = np.float)
         for channel, file_name in enumerate(self._field_file_list):
@@ -158,6 +161,7 @@ class FieldReaderCST2019(FieldReaderABC):
             glob_string = self._pad_bracket_string(file_name_pattern)
             print('glob_string: ', glob_string)
             file_list = glob.glob(glob_string)
+            print("file_list: ", file_list)
 
         if 0 == len(file_list):
             raise KeyError("File pattern not found: " + file_name_pattern )

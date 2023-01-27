@@ -249,8 +249,8 @@ if __name__ == "__main__":
     y0 = 0.0
     z0 = 0.0
 
-    #b1shim_name = 'incremental'
-    b1shim_name = 'ch8'
+    b1shim_name = 'incremental'
+    #b1shim_name = 'ch8'
 
     if b1shim_name == 'cplike':
         # shim: cp-like mode
@@ -373,7 +373,7 @@ if __name__ == "__main__":
     # range(150,5,-5)
 
     #plot_slices_z(b1plus_masked, plot_points(56, -2, 130) ,vmax=0.5)
-    plot_b1plus_shim(b1plus_masked, xdim, ydim, zdim, plot_point=(x0,y0,z0), vmax=0.2)
+    plot_b1plus_shim(b1plus, xdim, ydim, zdim, plot_point=(x0,y0,z0), vmax=0.2)
     plt.show()
     
     # save the shim to a matlab file
