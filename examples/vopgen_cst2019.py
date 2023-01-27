@@ -8,7 +8,7 @@ import h5py
 import hdf5storage
 import numpy as np
 import scipy as sp
-from rfutils import xmat
+from cstmod.rfutils.rfutils import xmat
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 
@@ -16,7 +16,7 @@ from cstmod.field_reader import FieldReaderCST2019, GenericDataNArray
 
 from cstmod.vopgen import SARMaskCST2019
 
-def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
+def export_vopgen_fields(project_dir, export_dir, normalization, freq0, B0_direction=1, postfix=""):
     export_3d_dir = os.path.join(project_dir, 'Export','3d')
     if not os.path.exists(vopgen_dir):
         os.mkdir(vopgen_dir)
@@ -27,18 +27,18 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0):
     efields_fr.write_vopgen(freq0, export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
                             export_type='e-field', merge_type='AC',
-                            rotating_frame=False)
+                            rotating_frame=False, postfix=postfix)
     hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
     print('[DEBUG] Saving ', os.path.join(export_dir, 'bfMapArrayN.mat'))
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
                             export_type='h-field', merge_type='AC',
-                            rotating_frame=True)
+                            rotating_frame=True, field_direction=B0_direction, postfix=postfix)
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN_rect.mat'),
                             export_type='h-field', merge_type='AC',
-                            rotating_frame=False)
+                            rotating_frame=False, postfix=postfix)
 
 def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_data):
     """Calculate and save vopgen masks.
@@ -52,7 +52,7 @@ def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_dat
     sarmask.epsr_min = 2
     sarmask.epsr_max = 100
     sarmask.sigma_min = 0.2 # (S/m)
-    sarmask.sigma_max = 1.0 # (S/m)  Exclude conductors
+    sarmask.sigma_max = 5 # (S/m)  Exclude conductors
     sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned_raw.mat'))
     mat_property_dict = dict()
     mat_property_dict['epsr'] = normal_dielectric.epsilon_r
@@ -78,7 +78,7 @@ def export_vopgen_mask_from_current_density(export_dir, f0, xdim, ydim, zdim, ef
     # todo: refactor magic numbers to *args
     sarmask.epsr_min = 2.0  
     sarmask.epsr_max = 100
-    sarmask.sigma_min = 0.05 # (S/m)
+    sarmask.sigma_min = 0.001 # (S/m)
     sarmask.sigma_max = 10.0 # (S/m)  Exclude conductors
     sarmask.write_sarmask(os.path.join(export_dir, 'sarmask_aligned_raw.mat'))
     mat_property_dict = dict()
@@ -113,17 +113,21 @@ if "__main__" == __name__:
     nchannels = 8
     generate_mask = True
     normalize_power = None
+    #postfix = r'__column3'
+    postfix = r'' 
+    b0_direction = +1
 
     #if 'win32' == sys.platform:
     #    base_mount = os.path.join('F:', os.sep)
     #else:
     
-    #base_mount = os.path.join(r'/export',r'scratch1')
-    #project_path = os.path.join(base_mount, r'Self_Decoupled_10r5t_16tx_64Rx_Duke_Fields_CST2020_3_1')
-
-    base_mount = os.path.join(r'/export', r'raid1', r'jerahmie-data', r'PTx_Knee_7T')
-    project_path = os.path.join(base_mount, r'Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2')
-
+    #base_mount = os.path.join(r'/export',r'raid1',r'jerahmie-data', r'PTx_Knee_7T')
+    #project_path = os.path.join(base_mount,
+    #        r'Knee_pTx_7T_DB_Siemens_Tom_One_Legs_Flipped_Fields_retune_20221127_2')
+    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'PTx_Knee_7T')
+    project_path = os.path.join(base_mount,
+            r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2')
+    
     #Tk().withdraw()
     #project_path = askdirectory()
     if normalize_power == "Auto":
@@ -148,7 +152,7 @@ if "__main__" == __name__:
     print(normalization)
     
     vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
-    export_vopgen_fields(project_path, vopgen_dir, normalization, freq0)
+    export_vopgen_fields(project_path, vopgen_dir, normalization, freq0, b0_direction)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
     efMapArrayN = efMapArrayN_dict['efMapArrayN']
@@ -156,7 +160,7 @@ if "__main__" == __name__:
 
     # Choose a shim solution for extracting mask and material properties
     # (initially cp-like mode)
-    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=' + str(297) +') [AC1].h5')
+    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=' + str(freq0) +') [AC1]'+ postfix +'.h5')
     #if 0:
     if generate_mask:
         if os.path.exists(current_density_file):

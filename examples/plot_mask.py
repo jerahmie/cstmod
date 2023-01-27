@@ -64,7 +64,7 @@ def plot_sar_mask_sac(sar_mask: np.ndarray,
     axs[2].pcolormesh(sar_mask[ix,:,:])    
     return fig    
 
-def plot_material_properties(mat_file):
+def plot_material_properties(mat_file: str):
     """Plot the material properties.
     """
     if not os.path.isfile(mat_file):
@@ -203,22 +203,25 @@ def plot_propmap(prop_file):
 if __name__ == "__main__":
     #sar_mask_file = os.path.join('/export','raid1','jerahmie-data', \
     #                             'Vopgen','sarmask_aligned.mat')
-    vopgen_dir = os.path.join('/export','raid1','jerahmie-data','PTx_Knee_7T','Knee_pTx_7T_DB_Siemens_Leg_Phantom_Fields_retune_20220830_2','Export','Vopgen')
+    vopgen_dir = os.path.join(r'/export', r'data2', r'jerahmie-data',
+                              r'PTx_Knee_7T',
+                              r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2',
+                              r'Export',r'Vopgen')
     #vopgen_dir = os.path.join('D:', os.sep, 'Temp_CST','KU_Ten_32_8CH_RL_Tx_Dipole_Tuned_v2_4', 'Vopgen')
     #vopgen_dir = os.path.join('E:', os.sep, 'CST_Field_Post','Self_Decoupled_10r5t_16tx_64Rx_Fields_CST2020_3', 'Export', 'Vopgen')
     sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned.mat')
-    material_file = os.path.join(vopgen_dir, 'mat_properties_raw.mat')
+    #material_file = os.path.join(vopgen_dir, 'mat_properties_raw.mat')
     #massdensity3d_file 
     #propmatfile
-    bfmaparrayn_rect_file = os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat')
+    #bfmaparrayn_rect_file = os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat')
     print("Plotting the SAR mask")
     sar_dict = hdf5storage.loadmat(sar_mask_file)
     xdim = sar_dict["XDim"]
     ydim = sar_dict["YDim"]
     zdim = sar_dict["ZDim"]
     sar_mask = sar_dict["sarmask_new"]
-    #plot_sar_mask(sar_mask_file)
-    plot_sar_mask_sac(sar_mask, xdim, ydim, zdim, (0.0, 0.0, 0.0))
+    plot_sar_mask(sar_mask_file)
+    #plot_sar_mask_sac(sar_mask, xdim, ydim, zdim, (0.0, 0.0, 0.0))
     #plot_material_properties(material_file)
     #plot_mag_b1(bfmaparrayn_rect_file)
     #plot_massdensity3d(os.path.join(vopgen_dir, 'massdensityMap3D.mat'))

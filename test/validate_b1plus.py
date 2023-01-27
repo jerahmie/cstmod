@@ -1,4 +1,7 @@
 #!/bin/env python
+"""
+"""
+
 import os
 import sys
 import numpy as np
@@ -40,7 +43,6 @@ def index_of_x(xdim, x):
 def plot_diff(b1a, b1b, ch, z_ind, vmax=1e-6):
     """ compare two b1 matrices
     """
-
     fig, axs = plt.subplots(1,3)
     p0 = axs[0].pcolormesh(np.abs(b1a[:,:,z_ind,0,ch]), vmin=0.0, vmax=vmax)
     plt.colorbar(p0, ax=axs[0])

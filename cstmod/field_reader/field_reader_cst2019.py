@@ -1,7 +1,6 @@
 """
 Implement concrete field reader class for CST 2019.
 
-todo: refactor to use result_reader3d
 """
 import os
 import sys
@@ -45,7 +44,7 @@ class FieldReaderCST2019(FieldReaderABC):
         self._source_dir = ""
         self._dim_scale = 0.001
 
-    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, version='2020'):
+    def _read_fields(self, field_dir, field_type, freq, excitation_type='', rotating_frame=False, field_direction=+1, postfix="", version='2020'):
         """Read fields from multiple files.  A field patter will be constructed
         from input values.  A FileNotFoundError will be raised if a set of files
         cannot be constructed.
@@ -65,19 +64,27 @@ class FieldReaderCST2019(FieldReaderABC):
         if version == '2020':
             #try lower case field file naming convention (cst2020)
             file_name_pattern = os.path.abspath(field_dir) + os.path.sep \
-                                + field_type.lower() + r' (f=' \
+                                + field_type.lower() \
+                                + r' (f=' \
                                 + str(freq) + r') [' \
-                                + excitation_type + '*].h5'
+                                + excitation_type + '*]' \
+                                + postfix \
+                                + '.h5'
         else:
             file_name_pattern = os.path.abspath(field_dir) + os.path.sep \
                                 + field_type + r' (f=' \
                                 + str(freq) + r') [' \
-                                + excitation_type + '*].h5'
+                                + excitation_type \
+                                + postfix \
+                                + '*].h5'
 
         self._freq = freq
         self._excitation_type = excitation_type
         self._process_file_list(file_name_pattern)
         self._nchannels = len(self._field_file_list)
+        print("[field_reader_cst2019] file_name_pattern: ", file_name_pattern)
+        print("[field_reader_cst2019] nchannels: ", self._nchannels)
+        print("[field_reader_cst2019] self.field_file_list: ", self._field_file_list)
         if len(self._normalization) != self._nchannels:
             self._normalization = np.ones((self._nchannels), dtype = np.float)
         for channel, file_name in enumerate(self._field_file_list):
@@ -115,10 +122,16 @@ class FieldReaderCST2019(FieldReaderABC):
                     # positive rotating frame (e.g. B1+)
                     fx = fxre + 1.0j*fxim
                     fy = fyre + 1.0j*fyim
-                    rotating_field_plus = 0.5*(fx + 1.0j*fy)
+                    if field_direction < 0:
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
+                    else:
+                        rotating_field_plus = 0.5*(fx + 1.0j*fy)
                     self._complex_fields[:,:,:,0,channel] = self._normalization[channel] * rotating_field_plus
                     # negative rotating frame (e.g. B1-)
-                    rotating_field_minus = 0.5*(np.conj(fx) + 1.0j*np.conj(fy))
+                    if field_direction < 0:
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
+                    else:
+                        rotating_field_minus = 0.5*np.conj(fx - 1.0j*fy)
                     self._complex_fields[:,:,:,1,channel] = self._normalization[channel] * rotating_field_minus
                 else:
                     # X-fields
@@ -148,6 +161,7 @@ class FieldReaderCST2019(FieldReaderABC):
             glob_string = self._pad_bracket_string(file_name_pattern)
             print('glob_string: ', glob_string)
             file_list = glob.glob(glob_string)
+            print("file_list: ", file_list)
 
         if 0 == len(file_list):
             raise KeyError("File pattern not found: " + file_name_pattern )
@@ -178,7 +192,7 @@ class FieldReaderCST2019(FieldReaderABC):
         return "[[]".join(f_padded_right_bracket)
 
     def write_vopgen(self, frequency, source_dir, output_file, export_type='e-field', 
-                     merge_type = 'AC', rotating_frame = False):
+                     merge_type = 'AC', rotating_frame = False, field_direction=+1, postfix=""):
         """Create vopgen output files for e-field and b-field, masks, etc.
         Args:
             output_dir: Output directory.  Default is export directory within
@@ -193,7 +207,8 @@ class FieldReaderCST2019(FieldReaderABC):
             os.makedirs(output_dir)
 
         #export_type = self.cst_3d_field_types[export_type]
-        self._read_fields(source_dir, export_type, frequency, merge_type, rotating_frame)
+        self._read_fields(source_dir, export_type, frequency, merge_type, 
+                          rotating_frame, field_direction, postfix)
         export_dict = dict()
         export_dict[u'XDim'] = self._xdim
         export_dict[u'YDim'] = self._ydim
