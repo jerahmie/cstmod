@@ -93,6 +93,7 @@ class FieldReaderCST2019(FieldReaderABC):
                 raise FileNotFoundError
             with h5py.File(file_name,'r') as dataf:
                 try:
+                    
                     xdim = self._dim_scale * dataf['Mesh line x'][()]
                     ydim = self._dim_scale * dataf['Mesh line y'][()]
                     zdim = self._dim_scale * dataf['Mesh line z'][()]

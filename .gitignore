@@ -1,3 +1,11 @@
+# generated images 
+*.png
+*.jpg
+
+# exported matlab data
+*.mat
+*.h5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
