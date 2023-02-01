@@ -8,7 +8,7 @@ import numpy as np
 import fnmatch
 from cstmod.cstutil import find_cst_files, sort_by_trailing_number
 
-def data_1d_at_frequency(file_name, frequency):
+def data_1d_at_frequency(file_name: str, frequency: float):
     """Get the data at frequency.
     Args:
         file_name: String representing the file name of the result value
@@ -19,7 +19,7 @@ def data_1d_at_frequency(file_name, frequency):
     Raises:
         None
     """
-    data = np.loadtxt(file_name, delimiter=',')
+    data = np.loadtxt(file_name, delimiter='\t')
     freq_ind = np.argmin(np.abs(data[:,0]-frequency))
 
     return(data[freq_ind])

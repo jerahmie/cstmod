@@ -11,6 +11,14 @@ from cstmod.field_reader import FieldReaderH5
 
 
 
+def field_mag_cartesian(fields: np.ndarray) -> np.ndarray:
+    """ calculate the magnitude of a cartesian vector, eg. Ex, Ey, Ez
+    """
+    return np.abs(np.sqrt(fields[:,:,:,0]*np.conj(fields[:,:,:,0]) + 
+        fields[:,:,:,1]*np.conj(fields[:,:,:,1]) +
+        fields[:,:,:,2]*np.conj(fields[:,:,:,2])))
+                
+
 def apply_shim(fields: np.ndarray, mags: np.ndarray, phases: np.ndarray) -> np.ndarray:
     """
     Apply a magnitude and phase shim to the exported fields.
@@ -55,7 +63,8 @@ class TestValidateVopgenCST(unittest.TestCase):
         self.field_file_names = ["e-field (f=" + str(self.frequency) +
                                 ") [AC" + str(i+1) + "].h5"
                                 for i in range(self.nchannels)]
-        self.cst_efields_file_name = "e-field (f=" + str(self.frequency) + ") [CP].h5"
+        self.cst_efields_file_name = "e-field (f=" + str(self.frequency) + ") [CP1].h5"
+        self.vmax = 100
 
 
     @unittest.skip
@@ -140,7 +149,7 @@ class TestValidateVopgenCST(unittest.TestCase):
         """
 
         # shim specification
-        shim_mags = 25*np.ones(8)
+        shim_mags = np.ones(8)
         shim_phases = 2.0*np.pi/180.0 * np.arange(0,360,45)
         
         # load Vopgen mat file into dictionary
@@ -167,6 +176,7 @@ class TestValidateVopgenCST(unittest.TestCase):
         e1_shim = apply_shim(vopgen_efield, shim_mags, shim_phases)
         #self.assertTrue(np.allclose(e1_shim, np.zeros(np.shape(e1_shim), dtype=np.complex128)))
         # result plots for visual inspection
+    
         fig, axs = plt.subplots(2,3)
         XX, YY = np.meshgrid(vopgen_xdim, vopgen_ydim)
         XX = np.transpose(XX)
@@ -179,13 +189,14 @@ class TestValidateVopgenCST(unittest.TestCase):
         zind_vopgen = np.argmin(np.abs(vopgen_zdim))
         print("cstind: (", xind_cst, ',', yind_cst, ',', zind_cst, ')')
         print("vopind: (", xind_vopgen, ',', yind_vopgen, ',', zind_vopgen, ')')
-         
-        axs[0][0].pcolormesh(XX, YY, np.abs(cst_efield[zind_cst,:,:,2]),vmin=0, vmax=500)
-        axs[0][1].pcolormesh(np.abs(cst_efield[:,yind_cst,:,2]), vmin = 0, vmax=500)
-        im = axs[0][2].pcolormesh(np.abs(cst_efield[:,:,xind_cst,2]), vmin=0, vmax=500)
-        axs[1][0].pcolormesh(XX, YY, np.abs(e1_shim[zind_vopgen,:,:,0]), vmin=0, vmax=500)
-        axs[1][1].pcolormesh(np.abs(e1_shim[:,yind_vopgen,:,0]), vmin=0, vmax=500)
-        axs[1][2].pcolormesh(np.abs(e1_shim[:,:,xind_vopgen,0]), vmin=0, vmax=500)
+        cst_efield_mag = field_mag_cartesian(cst_efield)
+        vopgen_efield_mag = field_mag_cartesian(e1_shim)
+        axs[0][0].pcolormesh(XX, YY, cst_efield_mag[zind_cst,:,:],vmin=0, vmax=self.vmax)
+        axs[0][1].pcolormesh(cst_efield_mag[:,yind_cst,:], vmin = 0, vmax=self.vmax)
+        im = axs[0][2].pcolormesh(cst_efield_mag[:,:,xind_cst], vmin=0, vmax=self.vmax)
+        axs[1][0].pcolormesh(XX, YY, vopgen_efield_mag[zind_vopgen,:,:], vmin=0, vmax=self.vmax)
+        axs[1][1].pcolormesh(vopgen_efield_mag[:,yind_vopgen,:], vmin=0, vmax=self.vmax)
+        axs[1][2].pcolormesh(vopgen_efield_mag[:,:,xind_vopgen], vmin=0, vmax=self.vmax)
         fig.subplots_adjust(right=0.8)
         cbar_ax = fig.add_axes([0.85, 0.15, 0.02, 0.7])
         plt.colorbar(im, cax=cbar_ax)
