@@ -26,18 +26,18 @@ def export_vopgen_fields(project_dir, export_dir, normalization, freq0, B0_direc
     print('[DEBUG] Saving',  os.path.join(export_dir, 'efMapArrayN.mat'))
     efields_fr.write_vopgen(freq0, export_3d_dir, 
                             os.path.join(export_dir, 'efMapArrayN.mat'),
-                            export_type='e-field', merge_type='AC',
+                            export_type='e-field', merge_type='ACS',
                             rotating_frame=False, postfix=postfix)
     hfields_fr = FieldReaderCST2019()
     hfields_fr.normalization = normalization
     print('[DEBUG] Saving ', os.path.join(export_dir, 'bfMapArrayN.mat'))
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN.mat'),
-                            export_type='h-field', merge_type='AC',
+                            export_type='h-field', merge_type='ACS',
                             rotating_frame=True, field_direction=B0_direction, postfix=postfix)
     hfields_fr.write_vopgen(freq0, export_3d_dir,
                             os.path.join(export_dir, 'bfMapArrayN_rect.mat'),
-                            export_type='h-field', merge_type='AC',
+                            export_type='h-field', merge_type='ACS',
                             rotating_frame=False, postfix=postfix)
 
 def export_vopgen_mask(export_dir, f0, xdim, ydim, zdim, efield_data, hfield_data):
@@ -109,12 +109,12 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 297 # Frequency of interest, MHz
-    nchannels = 8
+    freq0 = 447 # Frequency of interest, MHz
+    nchannels = 16
     generate_mask = True
     normalize_power = None
-    #postfix = r'__column3'
-    postfix = r'' 
+    postfix = r'__column1'
+    #postfix = r'' 
     b0_direction = +1
 
     #if 'win32' == sys.platform:
@@ -124,9 +124,12 @@ if "__main__" == __name__:
     #base_mount = os.path.join(r'/export',r'raid1',r'jerahmie-data', r'PTx_Knee_7T')
     #project_path = os.path.join(base_mount,
     #        r'Knee_pTx_7T_DB_Siemens_Tom_One_Legs_Flipped_Fields_retune_20221127_2')
-    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'PTx_Knee_7T')
-    project_path = os.path.join(base_mount,
-            r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2')
+    #base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'PTx_Knee_7T')
+    #project_path = os.path.join(base_mount,
+    #        r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2')
+    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'Self_Decoupled_10r5T',
+            r'SD3', r'column1')
+    project_path = os.path.join(base_mount, r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1')
     
     #Tk().withdraw()
     #project_path = askdirectory()
@@ -152,7 +155,7 @@ if "__main__" == __name__:
     print(normalization)
     
     vopgen_dir = os.path.join(project_path, 'Export', 'Vopgen')
-    export_vopgen_fields(project_path, vopgen_dir, normalization, freq0, b0_direction)
+    export_vopgen_fields(project_path, vopgen_dir, normalization, freq0, b0_direction, postfix=postfix)
     efMapArrayN_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'efMapArrayN.mat'))
     bfMapArrayN_rect_dict = hdf5storage.loadmat(os.path.join(vopgen_dir, 'bfMapArrayN_rect.mat'))
     efMapArrayN = efMapArrayN_dict['efMapArrayN']
@@ -160,7 +163,7 @@ if "__main__" == __name__:
 
     # Choose a shim solution for extracting mask and material properties
     # (initially cp-like mode)
-    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=' + str(freq0) +') [AC1]'+ postfix +'.h5')
+    current_density_file = os.path.join(project_path, 'Export','3d', 'current-density (f=' + str(freq0) +') [ACS1]'+ postfix +'.h5')
     #if 0:
     if generate_mask:
         if os.path.exists(current_density_file):
