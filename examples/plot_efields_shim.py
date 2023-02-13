@@ -5,7 +5,6 @@ import os
 import sys
 from collections.abc import Iterable
 from tkinter import Tk
-#from tkinter.filedialog import askdirectory
 from tkinter.filedialog import askopenfile
 import hdf5storage
 from math import sqrt, ceil
@@ -24,71 +23,6 @@ def efield_shim(e1: np.ndarray, shim_mags: np.ndarray, shim_phases: np.ndarray)-
     print(np.shape(e1_shim))
     return e1_shim
 
-#def plot_points(nz, deltaz, z0):
-#    """ Calculate values of slices to plot through phantom
-#    Args:
-#        nz:  number of slices
-#        deltaz: distance between slices
-#        z0: offset of first slice
-#    """
-#    return [z0 + deltaz * n for n in range(nz)]
-#
-#def plot_b1plus_ch(bfmap_file, ch_mags, plot_points_z, mask_file=None):
-#    """plot the per-channel masked fields
-#    """
-#    bfarray_dict = hdf5storage.loadmat(bfmap_file)
-#    xmin = -200
-#    xmax = 200
-#    ymin = -200
-#    ymax = 200
-#    zmin = -150
-#    zmax = 250
-#
-#    xdim = bfarray_dict['XDim']
-#    ydim = bfarray_dict['YDim']
-#    zdim = bfarray_dict['ZDim']
-#
-#    ixmin = np.argmin(np.abs(xdim - xmin))
-#    ixmax = np.argmin(np.abs(xdim - xmax))
-#    jymin = np.argmin(np.abs(ydim - ymin))
-#    jymax = np.argmin(np.abs(ydim - ymax))
-#    kzmin = np.argmin(np.abs(zdim - zmin))
-#    kzmax = np.argmin(np.abs(zdim - zmax))
-#
-#    b1 = bfarray_dict['bfMapArrayN']
-#    nchannels = np.shape(b1)[4]
-#    nfield_components = nxp.shape(b1)[3]
-#    
-#    if mask_file:
-#        sarmask = hdf5storage.loadmat(mask_file)['sarmask_new']
-#    #    for ch in range(nchannels):
-#    #        for comp in range(nfield_components):
-#    #            b1mask = np.multiply(b1[xmin:xmax,ymin:ymax,zmin:zmax,comp,ch],
-#    #                                            sarmask[xmin:xmax, ymin:ymax, zmin:zmax]) 
-#
-#    # calculate z-slices
-#    
-#    nrows = len(plot_points_z)
-#    ncols = nchannels
-#    fig, axs = plt.subplots(nrows, ncols)
-#    plt.set_cmap('jet')
-#    
-#    zind_slices = [np.argmin(np.abs(zdim - p)) for p in plot_points_z]
-#    print(zind_slices)
-#
-#    for axx, zind in zip(axs, zind_slices):
-#        ch = 0
-#        for ayy in axx:
-#            plt.sca(ayy)
-#            #zind = np.argmin(np.abs(zdim - plot_points[zi]))
-#            plt.pcolormesh(np.rot90(1e6*ch_mags[ch]*abs(np.multiply(b1[xmin:xmax,ymin:ymax,zind,0,ch],sarmask[xmin:xmax,ymin:ymax,zind] )),0), vmin=0, vmax=0.1)
-#            ayy.set_aspect('equal')
-#            ayy.get_yaxis().set_visible(False)
-#            ayy.get_xaxis().set_visible(False)
-#            ch += 1
-#    plt.suptitle("Simulation Self-Decoupled")
-#    return fig, axs
-#
 def plot_efield_shim(e1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=None):
     """ Plot the e1 fields with a given phase.
     """
@@ -114,7 +48,7 @@ def plot_efield_shim(e1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=None):
     nrows = 1
     ncols = 3
     zi = 0
-    fig, axs = plt.subplots(nrows, ncols, figsize=(10,3))
+    fig, axs = plt.subplots(nrows, ncols, figsize=(10,3.5))
     plt.set_cmap('jet')
 
 
@@ -130,14 +64,16 @@ def plot_efield_shim(e1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=None):
     plt.sca(axs[0])
     ax = plt.gca()
     zind = np.argmin(np.abs(zdim-plot_point[2]))
-    plt.pcolormesh(np.transpose(xx), np.transpose(yy), abs(e1shim_mag[ixmin:ixmax,jymin:jymax,zind]), vmin=0.0, vmax=vmax)
+    plt.pcolormesh(np.transpose(xx), np.transpose(yy),
+            abs(e1shim_mag[ixmin:ixmax,jymin:jymax,zind]), vmin=0.0, vmax=vmax)
     ax.set_aspect('equal','box')
     ax.set_title('Axial')
 
     # coronal
     xx, zz = np.meshgrid(xdim[ixmin:ixmax], zdim[kzmin:kzmax])
     yind = np.argmin(np.abs(ydim - 0.0))
-    axs[1].pcolormesh(np.transpose(xx), np.transpose(zz), np.fliplr(abs(e1shim_mag[ixmin:ixmax,yind,kzmin:kzmax])), vmin=0.0, vmax=vmax)
+    axs[1].pcolormesh(np.transpose(xx), np.transpose(zz),
+            np.fliplr(abs(e1shim_mag[ixmin:ixmax,yind,kzmin:kzmax])), vmin=0.0, vmax=vmax)
     axs[1].hlines(zmax-plot_point[2], xdim[ixmin+1], xdim[ixmax-1],'w')
     axs[1].set_aspect('equal', 'box')
     axs[1].set_title('Coronal')
@@ -147,7 +83,8 @@ def plot_efield_shim(e1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=None):
     ax = plt.gca()
     yy, zz = np.meshgrid(ydim[jymin:jymax], zdim[kzmin:kzmax])
     xind = np.argmin(np.abs(xdim - 0.0))
-    im = axs[2].pcolormesh(np.transpose(yy), np.transpose(zz), np.fliplr(abs(e1shim_mag[xind,jymin:jymax,kzmin:kzmax])), vmin=0.0, vmax=vmax)
+    im = axs[2].pcolormesh(np.transpose(yy), np.transpose(zz),
+            np.fliplr(abs(e1shim_mag[xind,jymin:jymax,kzmin:kzmax])), vmin=0.0, vmax=vmax)
     axs[2].hlines(zmax-plot_point[2], ydim[jymin+1], ydim[jymax-1], 'w')
     axs[2].set_aspect('equal', 'box')
     axs[2].set_title('Sagittal')
@@ -155,35 +92,9 @@ def plot_efield_shim(e1shim, xdim, ydim, zdim, plot_point=(0,0,0),vmax=None):
     fig.subplots_adjust(right=0.8)
     cbar_ax = fig.add_axes([0.85, 0.15, 0.02, 0.7])
     plt.colorbar(im, cax=cbar_ax)
+    fig.suptitle("|E1| Shim, Post-Processing Per-Channel")
 
     return axs
-
-#def plot_slices_z(field3d, z_slices, vmax=1.0):
-#    """Plot the axial slices at given z-values"""
-#    print('field shape: ', np.shape(field3d))
-#    (nx, ny, nz) = np.shape(field3d)
-#    print('nx: ', nx, 'ny: ', ny, 'nz: ', nz)
-#    # plot dimensions
-#    nz_slices = len(z_slices)
-#    print('nz_slices: ', nz_slices)
-#    ncols = int(round(sqrt(nz_slices)))
-#    nrows = int(ceil(nz_slices/ncols))
-#    
-#    fig, axs = plt.subplots(nrows, ncols)
-#    plt.set_cmap('jet')
-#
-#    # calculate z index from plot geometry, current row, column.
-#    zindex = lambda nxp, nyp, ncols: nxp*ncols + nyp
-#    print(ncols)
-#    for nxp, axx in enumerate(axs):
-#        for nyp, ayy in enumerate(axx):
-#            zind = zindex(nxp, nyp, ncols)
-#            if zind < nz_slices:
-#                ayy.pcolormesh(1e6*np.rot90(np.abs(field3d[:,:,z_slices[zind]]),3),vmax=vmax)
-#                ayy.set_title(str(zind))
-#            ayy.set_aspect('equal','box')
-#    return fig, axs
-
 
 
 def plot_efield_h5(file_name:str, mask=None, plot_point: tuple = (0,0,0), vmin: float=0.0, vmax: float = 500) -> plt.axes:
@@ -207,25 +118,40 @@ def plot_efield_h5(file_name:str, mask=None, plot_point: tuple = (0,0,0), vmin: 
             efields[:,:,:,1] * np.conjugate(efields[:,:,:,1]) +
             efields[:,:,:,2] * np.conjugate(efields[:,:,:,2]))), (2,1,0))
     efields_abs = np.multiply(efields_abs, field_mask)
-    fig, axs = plt.subplots(1,3)
+    fig, axs = plt.subplots(1, 3, figsize=(10,3.5))
     plt.set_cmap('jet')
     # plot axial
     zind = np.argmin(np.abs(zdim-plot_point[2]))
-    axs[0].pcolormesh(efields_abs[:,:, zind], vmin=vmin, vmax=vmax)
+    axs[0].pcolormesh(np.fliplr(np.rot90(efields_abs[:,:, zind],3)), vmin=vmin, vmax=vmax)
+    axs[0].set_aspect('equal', 'box')
+    axs[0].set_title('Axial')
 
     # plot coronal
     yind = np.argmin(np.abs(ydim-plot_point[1]))
-    axs[1].pcolormesh(efields_abs[:,yind,:], vmin=vmin, vmax=vmax)
+    axs[1].pcolormesh(np.rot90(efields_abs[:,yind,:]), vmin=vmin, vmax=vmax)
+    axs[1].set_aspect('equal', 'box')
+    axs[1].set_title('Coronal')
 
     # plot sagittal
     xind = np.argmin(np.abs(xdim-plot_point[0]))
-    axs[2].pcolormesh(efields_abs[xind,:,:], vmin=vmin, vmax=vmax)
+    im = axs[2].pcolormesh(np.rot90(efields_abs[xind,:,:]), vmin=vmin, vmax=vmax)
+    axs[2].set_aspect('equal', 'box')
+    axs[2].set_title('Sagittal')
+
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.15, 0.02, 0.7])
+    plt.colorbar(im, cax=cbar_ax)
+    fig.suptitle("|E1| Shim, CST Co-Simulation")
 
     return axs
 
 if __name__ == "__main__":
     cst_project_dir = os.path.join(r'/export','data2','jerahmie-data','PTx_Knee_7T',
         'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2') 
+    #cst_project_dir = os.path.join(r'/export', r'data2', r'jerahmie-data',
+    #    r'Self_Decoupled_10r5T', r'SD3', r'column1',
+    #    'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1') 
+    
     cst_export_3d_dir = os.path.join(cst_project_dir, r'Export', r'3d')
     vopgen_dir = os.path.join(cst_project_dir, r'Export', r'Vopgen') 
     #try:
@@ -265,7 +191,7 @@ if __name__ == "__main__":
     #plot_points_z  = [z0 + deltaz * n for n in range(nz)]
     #print(plot_points_z[::-1], plot_points_z.reverse())
 
-    # load b1 data
+    # load e1 data
     print('loading e1 data')
     efdict = hdf5storage.loadmat(efmap_array_file)
     print('Done.')
@@ -277,8 +203,8 @@ if __name__ == "__main__":
     nchannels = 8 
     x0 = 0.0
     y0 = 0.0
+    #z0 = 0.23
     z0 = 0.0
-
     shim_name = 'incremental'
 
     if shim_name == 'cplike':
@@ -384,7 +310,7 @@ if __name__ == "__main__":
 
     elif shim_name == 'incremental':
         # uniform phases across channels
-        shim_data_re_im = np.array([25.0*np.exp(2.0j*ch*np.pi/nchannels) for ch in np.arange(nchannels)])
+        shim_data_re_im = np.array([np.exp(-2.0j*ch*np.pi/nchannels) for ch in np.arange(nchannels)])
 
     else:
         # zeros phase by default
@@ -410,9 +336,9 @@ if __name__ == "__main__":
     # range(150,5,-5)
 
     #plot_slices_z(b1plus_masked, plot_points(56, -2, 130) ,vmax=0.5)
-    ax1 = plot_efield_shim(e1_masked, xdim, ydim, zdim, plot_point=(x0,y0,z0),vmax=500)
-    ax2 = plot_efield_h5(os.path.join(cst_export_3d_dir, r'e-field (f=297) [CP].h5'), mask=sarmask,
-                   plot_point=(0,0,0), vmax=500)
+    ax1 = plot_efield_shim(e1_masked, xdim, ydim, zdim, plot_point=(x0,y0,z0),vmax=100)
+    ax2 = plot_efield_h5(os.path.join(cst_export_3d_dir, r'e-field (f=297) [CP1].h5'), mask=sarmask,
+                   plot_point=(0,0,z0*1000), vmax=100)
         
     plt.show()
     

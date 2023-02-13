@@ -109,12 +109,12 @@ def load_current_data(field_data_file):
     return jfield_data
 
 if "__main__" == __name__:
-    freq0 = 447 # Frequency of interest, MHz
-    nchannels = 16
+    freq0 = 297 # Frequency of interest, MHz
+    nchannels = 8
     generate_mask = True
     normalize_power = None
-    postfix = r'__column1'
-    #postfix = r'' 
+    #postfix = r'__column1'
+    postfix = r'' 
     b0_direction = +1
 
     #if 'win32' == sys.platform:
@@ -124,12 +124,12 @@ if "__main__" == __name__:
     #base_mount = os.path.join(r'/export',r'raid1',r'jerahmie-data', r'PTx_Knee_7T')
     #project_path = os.path.join(base_mount,
     #        r'Knee_pTx_7T_DB_Siemens_Tom_One_Legs_Flipped_Fields_retune_20221127_2')
-    #base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'PTx_Knee_7T')
-    #project_path = os.path.join(base_mount,
-    #        r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2')
-    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'Self_Decoupled_10r5T',
-            r'SD3', r'column1')
-    project_path = os.path.join(base_mount, r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1')
+    base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'PTx_Knee_7T')
+    project_path = os.path.join(base_mount,
+            r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2')
+    #base_mount = os.path.join(r'/export',r'data2',r'jerahmie-data', r'Self_Decoupled_10r5T',
+    #        r'SD3', r'column1')
+    #project_path = os.path.join(base_mount, r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1')
     
     #Tk().withdraw()
     #project_path = askdirectory()

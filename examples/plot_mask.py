@@ -203,14 +203,14 @@ def plot_propmap(prop_file):
 if __name__ == "__main__":
     #sar_mask_file = os.path.join('/export','raid1','jerahmie-data', \
     #                             'Vopgen','sarmask_aligned.mat')
-    #vopgen_dir = os.path.join(r'/export', r'data2', r'jerahmie-data',
-    #                          r'PTx_Knee_7T',
-    #                          r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2',
-    #                          r'Export',r'Vopgen')
     vopgen_dir = os.path.join(r'/export', r'data2', r'jerahmie-data',
-            r'Self_Decoupled_10r5T', r'SD3', r'column1',
-            r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1',
-            r'Export', r'Vopgen')
+                              r'PTx_Knee_7T',
+                              r'Knee_pTx_7T_DB_Siemens_Duke_One_Legs_Fields_retune_20230124_2',
+                              r'Export',r'Vopgen')
+    #vopgen_dir = os.path.join(r'/export', r'data2', r'jerahmie-data',
+    #        r'Self_Decoupled_10r5T', r'SD3', r'column1',
+    #        r'Self_Decoupled_SD3_10r5t_16tx_Lightbulb_Phantom_1',
+    #        r'Export', r'Vopgen')
     sar_mask_file = os.path.join(vopgen_dir,'sarmask_aligned.mat')
     #material_file = os.path.join(vopgen_dir, 'mat_properties_raw.mat')
     #massdensity3d_file 
